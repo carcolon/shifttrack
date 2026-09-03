@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ShiftTrack - Modelo de Uso de Agentes</title>
+  <style>
+    :root {
+      --bg: #eef5fb;
+      --panel: rgba(255,255,255,0.96);
+      --ink: #17385c;
+      --muted: #5d7492;
+      --line: #d7e4f1;
+      --blue: #2485e6;
+      --blue-soft: #eaf5ff;
+      --green-soft: #edf9f2;
+      --gold-soft: #fff7e8;
+      --shadow: 0 18px 54px rgba(22,58,94,0.08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(36,133,230,0.16), transparent 28%),
+        linear-gradient(180deg, #f8fbff 0%, var(--bg) 100%);
+      color: var(--ink);
+    }
+    .page {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 28px 22px 72px;
+    }
+    .hero {
+      border-radius: 28px;
+      padding: 34px 36px;
+      background: linear-gradient(135deg, rgba(22,59,97,0.98), rgba(36,133,230,0.92));
+      color: #fff;
+      box-shadow: var(--shadow);
+    }
+    .eyebrow {
+      margin-bottom: 12px;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      opacity: .8;
+    }
+    h1, h2, h3 { margin: 0; }
+    h1 {
+      font-size: 40px;
+      margin-bottom: 14px;
+    }
+    .hero p {
+      margin: 0;
+      max-width: 920px;
+      font-size: 18px;
+      line-height: 1.65;
+      color: rgba(255,255,255,0.92);
+    }
+    .section {
+      margin-top: 24px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 26px;
+      box-shadow: var(--shadow);
+    }
+    .section h2 {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+    .intro {
+      margin: 0 0 18px;
+      color: var(--muted);
+      line-height: 1.7;
+      font-size: 16px;
+    }
+    .grid-2, .grid-4 {
+      display: grid;
+      gap: 16px;
+    }
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+    }
+    .card h3 {
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.65;
+      font-size: 15px;
+    }
+    ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      line-height: 1.75;
+    }
+    .flow {
+      display: grid;
+      gap: 14px;
+      margin-top: 14px;
+    }
+    .step {
+      display: grid;
+      grid-template-columns: 56px 1fr;
+      gap: 14px;
+      align-items: start;
+      padding: 16px;
+      border-radius: 18px;
+      background: #fff;
+      border: 1px solid var(--line);
+    }
+    .step-num {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #2485e6, #58b2ff);
+      color: #fff;
+      font-size: 22px;
+      font-weight: 800;
+    }
+    .step h3 {
+      font-size: 19px;
+      margin-bottom: 6px;
+    }
+    .step p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+    th, td {
+      padding: 14px 16px;
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid var(--line);
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+    th {
+      background: #f6faff;
+      color: var(--ink);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-size: 13px;
+    }
+    td strong { color: var(--ink); }
+    tr:last-child td { border-bottom: none; }
+    .footer {
+      margin-top: 24px;
+      text-align: center;
+      color: #6a84a1;
+      font-size: 14px;
+    }
+    @media (max-width: 980px) {
+      .grid-4, .grid-2 { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 760px) {
+      .grid-4, .grid-2 { grid-template-columns: 1fr; }
+      .step { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <section class="hero">
+      <div class="eyebrow">Uso interno del equipo</div>
+      <h1>ShiftTrack · Modelo de uso de agentes</h1>
+      <p>
+        Este documento explica qué agentes se definieron para ShiftTrack, para qué sirve cada uno y cómo se recomienda usarlos
+        dentro del flujo real del equipo.
+      </p>
+    </section>
+
+    <section class="section">
+      <h2>Los 8 agentes base</h2>
+      <p class="intro">
+        El objetivo no es llenar el proceso de prompts, sino dar estructura. Cada agente existe para un tipo de trabajo concreto.
+      </p>
+      <div class="grid-4">
+        <div class="card"><h3>Product Manager</h3><p>Aterriza requerimientos y define aceptación.</p></div>
+        <div class="card"><h3>Software Architect</h3><p>Define la solución cuando el cambio toca varias capas.</p></div>
+        <div class="card"><h3>Frontend Developer</h3><p>Implementa cambios de UI, rutas y experiencia del usuario.</p></div>
+        <div class="card"><h3>Backend Architect</h3><p>Implementa reglas, endpoints, repositorios y migraciones.</p></div>
+        <div class="card"><h3>Security Engineer</h3><p>Revisa auth, sesiones, SSO, findings y exposición de datos.</p></div>
+        <div class="card"><h3>Code Reviewer</h3><p>Busca bugs, regresiones y pruebas faltantes.</p></div>
+        <div class="card"><h3>Technical Writer</h3><p>Produce README, guías, docs de cliente y cyber.</p></div>
+        <div class="card"><h3>Project Manager</h3><p>Ordena fases, dependencias, prioridades y cierre.</p></div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Cómo se usan</h2>
+      <p class="intro">
+        La mecánica es simple: se abre el archivo del agente, se copia su contenido y se pega en la herramienta que el equipo esté usando.
+      </p>
+      <div class="grid-2">
+        <div class="card">
+          <h3>Ruta de los agentes</h3>
+          <ul>
+            <li><code>docs/agents/</code></li>
+            <li><code>docs/agents/copy-paste/</code></li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Uso práctico</h3>
+          <ul>
+            <li>copiar el prompt del agente</li>
+            <li>pegarlo como system/custom prompt</li>
+            <li>debajo escribir la tarea concreta</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Flujo recomendado del equipo</h2>
+      <div class="flow">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div>
+            <h3>Product Manager</h3>
+            <p>Convierte la necesidad en una historia clara con objetivo, reglas, alcance y aceptación.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div>
+            <h3>Software Architect</h3>
+            <p>Decide la mejor solución transversal y define qué tocar en frontend, backend, auth, DB o infraestructura.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div>
+            <h3>Ejecución</h3>
+            <p>Frontend Developer y/o Backend Architect implementan el cambio según lo definido.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div>
+            <h3>Seguridad</h3>
+            <p>Security Engineer revisa impacto real en auth, storage, sesiones, SSO y findings.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">5</div>
+          <div>
+            <h3>Review</h3>
+            <p>Code Reviewer revisa bugs, regresiones, edge cases y pruebas faltantes.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">6</div>
+          <div>
+            <h3>Documentación</h3>
+            <p>Technical Writer actualiza la documentación necesaria para equipo, cliente o ciberseguridad.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">7</div>
+          <div>
+            <h3>Seguimiento</h3>
+            <p>Project Manager ordena dependencias, valida cierre y da visibilidad del avance.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Qué agente usar según el tipo de tarea</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Situación</th>
+            <th>Agente principal</th>
+            <th>Apoyo sugerido</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Requerimiento ambiguo del negocio</strong></td>
+            <td>Product Manager</td>
+            <td>Software Architect</td>
+          </tr>
+          <tr>
+            <td><strong>Cambio que toca varias capas</strong></td>
+            <td>Software Architect</td>
+            <td>Frontend Developer / Backend Architect</td>
+          </tr>
+          <tr>
+            <td><strong>Trabajo visual o UX</strong></td>
+            <td>Frontend Developer</td>
+            <td>Code Reviewer</td>
+          </tr>
+          <tr>
+            <td><strong>Reglas de negocio, migraciones o endpoints</strong></td>
+            <td>Backend Architect</td>
+            <td>Security Engineer</td>
+          </tr>
+          <tr>
+            <td><strong>SSO, auth o findings de scanner</strong></td>
+            <td>Security Engineer</td>
+            <td>Backend Architect</td>
+          </tr>
+          <tr>
+            <td><strong>Revisión final antes de merge</strong></td>
+            <td>Code Reviewer</td>
+            <td>Security Engineer</td>
+          </tr>
+          <tr>
+            <td><strong>README, cliente, cyber, handoff</strong></td>
+            <td>Technical Writer</td>
+            <td>Software Architect</td>
+          </tr>
+          <tr>
+            <td><strong>Planificación y secuencia</strong></td>
+            <td>Project Manager</td>
+            <td>Product Manager</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>Formatos listos para copiar y pegar</h2>
+      <div class="grid-2">
+        <div class="card">
+          <h3>Cursor</h3>
+          <p>Usa <code>docs/agents/copy-paste/cursor-prompts.md</code> como fuente rápida para abrir una conversación por rol.</p>
+        </div>
+        <div class="card">
+          <h3>GitHub Copilot</h3>
+          <p>Usa <code>docs/agents/copy-paste/copilot-prompts.md</code> para pegar el bloque del agente en Copilot Chat.</p>
+        </div>
+        <div class="card">
+          <h3>Claude</h3>
+          <p>Usa <code>docs/agents/copy-paste/claude-prompts.md</code> como prompt inicial o prompt de sistema.</p>
+        </div>
+        <div class="card">
+          <h3>Base larga</h3>
+          <p>Si se necesita más contexto por rol, usar directamente los archivos completos en <code>docs/agents/</code>.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Ejemplo simple</h2>
+      <div class="card">
+        <p>
+          Si llega una solicitud como “necesitamos un nuevo comportamiento de PTO y además mostrarlo en el calendario”, el flujo recomendado sería:
+        </p>
+        <ul style="margin-top:12px;">
+          <li>Product Manager: aterriza el requerimiento</li>
+          <li>Software Architect: define la solución</li>
+          <li>Backend Architect: implementa la regla</li>
+          <li>Frontend Developer: implementa la visualización</li>
+          <li>Security Engineer: revisa impacto</li>
+          <li>Code Reviewer: revisa riesgos</li>
+          <li>Technical Writer: actualiza documentación</li>
+          <li>Project Manager: cierra y organiza entrega</li>
+        </ul>
+      </div>
+    </section>
+
+    <div class="footer">
+      ShiftTrack · Modelo interno de uso de agentes
+    </div>
+  </div>
+</body>
+</html>

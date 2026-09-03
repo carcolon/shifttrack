@@ -1,0 +1,14 @@
+{
+  "id": "11111111-1111-1111-1111-111111111111",
+  "tenantId": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+  "objectId": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+  "email": "charlie.colon@solvoglobal.com",
+  "displayName": "Charlie Colon",
+  "role": 0,
+  "isActive": true,
+  "location": "COL",
+  "company": "Solvo Global",
+  "operation": "Leaders",
+  "shiftTime": "Morning",
+  "scheduleBlocks": "[{\"days\":[\"Mon\",\"Tue\",\"Wed\",\"Thu\",\"Fri\"],\"start\":\"09:36\",\"end\":\"21:36\"}]"
+}

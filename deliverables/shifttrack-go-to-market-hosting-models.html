@@ -1,0 +1,904 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ShiftTrack - Opciones de Venta, Hosting y Planes</title>
+  <style>
+    :root {
+      --bg: #eef5fb;
+      --panel: rgba(255,255,255,0.96);
+      --ink: #18375a;
+      --muted: #5b7391;
+      --line: #d7e4f1;
+      --blue: #2688e8;
+      --blue-deep: #163b61;
+      --blue-soft: #eaf5ff;
+      --green: #239a61;
+      --green-soft: #edf9f2;
+      --gold: #b9841f;
+      --gold-soft: #fff7e8;
+      --red-soft: #fff0f1;
+      --shadow: 0 18px 54px rgba(22, 58, 94, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(38, 136, 232, 0.18), transparent 28%),
+        radial-gradient(circle at top right, rgba(75, 185, 255, 0.11), transparent 24%),
+        linear-gradient(180deg, #f8fbff 0%, var(--bg) 100%);
+      color: var(--ink);
+    }
+
+    .page {
+      max-width: 1360px;
+      margin: 0 auto;
+      padding: 28px 22px 80px;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      border-radius: 28px;
+      padding: 34px 36px;
+      background: linear-gradient(135deg, rgba(22,59,97,0.98), rgba(38,136,232,0.92));
+      color: #fff;
+      box-shadow: var(--shadow);
+    }
+
+    .hero::before,
+    .hero::after {
+      content: "";
+      position: absolute;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.1);
+    }
+
+    .hero::before {
+      width: 360px;
+      height: 360px;
+      right: -100px;
+      top: -140px;
+    }
+
+    .hero::after {
+      width: 240px;
+      height: 240px;
+      left: -70px;
+      bottom: -90px;
+    }
+
+    .eyebrow {
+      margin-bottom: 12px;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      opacity: 0.8;
+    }
+
+    h1, h2, h3, h4 {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: 42px;
+      line-height: 1.05;
+      margin-bottom: 14px;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 920px;
+      font-size: 18px;
+      line-height: 1.65;
+      color: rgba(255,255,255,0.92);
+    }
+
+    .hero-grid {
+      margin-top: 24px;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .hero-card {
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 18px;
+      padding: 16px 18px;
+      backdrop-filter: blur(10px);
+    }
+
+    .hero-card strong {
+      display: block;
+      font-size: 25px;
+      margin-bottom: 4px;
+    }
+
+    .hero-card span {
+      font-size: 13px;
+      color: rgba(255,255,255,0.84);
+    }
+
+    .section {
+      margin-top: 24px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 26px;
+      box-shadow: var(--shadow);
+    }
+
+    .section h2 {
+      font-size: 28px;
+      color: var(--ink);
+      margin-bottom: 10px;
+    }
+
+    .intro {
+      margin: 0 0 18px;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.7;
+    }
+
+    .grid-2,
+    .grid-3,
+    .grid-4 {
+      display: grid;
+      gap: 16px;
+    }
+
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+    .card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+    }
+
+    .card h3 {
+      font-size: 20px;
+      color: var(--ink);
+      margin-bottom: 10px;
+    }
+
+    .card h4 {
+      font-size: 16px;
+      color: var(--ink);
+      margin-bottom: 8px;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.65;
+      font-size: 15px;
+    }
+
+    .badge-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    .badge {
+      padding: 9px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      border: 1px solid transparent;
+    }
+
+    .badge.blue {
+      background: var(--blue-soft);
+      color: #145186;
+      border-color: #cde3fb;
+    }
+
+    .badge.green {
+      background: var(--green-soft);
+      color: #1e7b4b;
+      border-color: #cfe8d8;
+    }
+
+    .badge.gold {
+      background: var(--gold-soft);
+      color: #8d6212;
+      border-color: #f0ddad;
+    }
+
+    .badge.red {
+      background: var(--red-soft);
+      color: #9d4352;
+      border-color: #f3cbd1;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      line-height: 1.75;
+    }
+
+    li + li { margin-top: 2px; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      background: #fff;
+      margin-top: 8px;
+    }
+
+    th, td {
+      padding: 14px 16px;
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid var(--line);
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+
+    th {
+      background: #f6faff;
+      color: var(--ink);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 13px;
+    }
+
+    td strong { color: var(--ink); }
+    tr:last-child td { border-bottom: none; }
+
+    .diagram {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 18px;
+      margin-top: 10px;
+      overflow-x: auto;
+    }
+
+    svg {
+      width: 100%;
+      min-width: 1040px;
+      height: auto;
+      display: block;
+    }
+
+    .box-title {
+      font-size: 16px;
+      font-weight: 700;
+      fill: #163b61;
+    }
+
+    .box-sub {
+      font-size: 12px;
+      fill: #4b6482;
+    }
+
+    .arrow-label {
+      font-size: 12px;
+      fill: #4b6482;
+    }
+
+    .quote {
+      background: linear-gradient(135deg, #edf6ff, #ffffff);
+      border: 1px solid #d8e9fb;
+      border-radius: 20px;
+      padding: 18px 20px;
+      color: #345475;
+      font-size: 16px;
+      line-height: 1.72;
+    }
+
+    .pricing {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .pricing-card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 22px;
+      box-shadow: 0 8px 24px rgba(22, 56, 93, 0.04);
+    }
+
+    .pricing-card.featured {
+      border: 2px solid #7fc0ff;
+      box-shadow: 0 12px 32px rgba(38, 136, 232, 0.12);
+    }
+
+    .pricing-card h3 {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    .price {
+      font-size: 34px;
+      font-weight: 800;
+      color: var(--blue-deep);
+      margin-bottom: 8px;
+    }
+
+    .price span {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .footer {
+      margin-top: 24px;
+      text-align: center;
+      color: #6883a1;
+      font-size: 14px;
+    }
+
+    @media (max-width: 1080px) {
+      .hero-grid,
+      .grid-4,
+      .grid-3,
+      .grid-2,
+      .pricing {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .page { padding: 18px 14px 48px; }
+      h1 { font-size: 32px; }
+      .hero-grid,
+      .grid-4,
+      .grid-3,
+      .grid-2,
+      .pricing {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <section class="hero">
+      <div class="eyebrow">Go To Market · Hosting · Pricing</div>
+      <h1>ShiftTrack<br>Opciones de venta y modelo comercial</h1>
+      <p>
+        Este documento resume cómo podría venderse ShiftTrack como producto. Incluye las dos opciones de arquitectura comercial
+        más realistas, cómo se operarían, qué plan tendría más sentido para arrancar y una propuesta inicial de empaquetado para
+        ofrecerla al mercado.
+      </p>
+      <div class="hero-grid">
+        <div class="hero-card">
+          <strong>2</strong>
+          <span>modelos principales de entrega: multi-tenant y single-tenant</span>
+        </div>
+        <div class="hero-card">
+          <strong>3</strong>
+          <span>planes comerciales sugeridos para salir al mercado</span>
+        </div>
+        <div class="hero-card">
+          <strong>SaaS</strong>
+          <span>como modelo recomendado de monetización</span>
+        </div>
+        <div class="hero-card">
+          <strong>Setup + Fee</strong>
+          <span>como estructura comercial base</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>1. Punto de partida</h2>
+      <p class="intro">
+        Si la empresa quiere vender ShiftTrack, lo más sano no es entregar el código ni venderlo como proyecto único, sino convertirlo
+        en un producto SaaS con una estructura clara de planes, operación, soporte y seguridad.
+      </p>
+      <div class="grid-3">
+        <div class="card">
+          <h3>Qué se vendería</h3>
+          <p>Una plataforma para gestión de horarios, coverage, PTO, change requests, administración de empleados y revisión operativa.</p>
+        </div>
+        <div class="card">
+          <h3>Cómo se cobraría</h3>
+          <p>Con una suscripción mensual o anual, más un fee inicial de implementación cuando el cliente lo requiera.</p>
+        </div>
+        <div class="card">
+          <h3>Cómo se posicionaría</h3>
+          <p>Como una solución para ordenar la operación diaria, reducir trabajo manual y dar visibilidad real sobre personal, cobertura y cambios.</p>
+        </div>
+      </div>
+      <div class="badge-row">
+        <span class="badge blue">SaaS</span>
+        <span class="badge blue">Suscripción mensual o anual</span>
+        <span class="badge green">Implementación inicial</span>
+        <span class="badge gold">SSO y features premium</span>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>2. Opción A · Multi-tenant</h2>
+      <p class="intro">
+        En un modelo multi-tenant, una sola plataforma atiende a varios clientes. Todos usan el mismo producto, pero cada empresa
+        queda aislada lógicamente dentro del sistema.
+      </p>
+      <div class="grid-2">
+        <div class="card">
+          <h3>Cómo se ve para el cliente</h3>
+          <ul>
+            <li>Puede entrar por una URL común o por un subdominio propio.</li>
+            <li>Ejemplo recomendado: <strong>cliente.shifttrack.com</strong></li>
+            <li>El cliente siente que tiene su propio espacio dentro del producto.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Cómo se gestiona internamente</h3>
+          <ul>
+            <li>La app identifica un <strong>TenantId</strong> por cliente.</li>
+            <li>Los datos se filtran siempre por ese tenant.</li>
+            <li>Una sola versión del producto se actualiza para todos.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="diagram">
+        <svg viewBox="0 0 1180 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Modelo multi tenant">
+          <defs>
+            <marker id="arrA" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+              <path d="M0,0 L10,5 L0,10 Z" fill="#6b86a4"/>
+            </marker>
+          </defs>
+          <rect x="40" y="50" width="200" height="80" rx="14" fill="#fff" stroke="#cddff2"/>
+          <text x="68" y="84" class="box-title">acme.shifttrack.com</text>
+          <text x="68" y="106" class="box-sub">Cliente A</text>
+
+          <rect x="40" y="170" width="200" height="80" rx="14" fill="#fff" stroke="#cddff2"/>
+          <text x="68" y="204" class="box-title">solvo.shifttrack.com</text>
+          <text x="68" y="226" class="box-sub">Cliente B</text>
+
+          <rect x="40" y="290" width="200" height="80" rx="14" fill="#fff" stroke="#cddff2"/>
+          <text x="68" y="324" class="box-title">demo.shifttrack.com</text>
+          <text x="68" y="346" class="box-sub">Cliente C</text>
+
+          <rect x="330" y="140" width="220" height="140" rx="18" fill="#eaf5ff" stroke="#8fc3f7" stroke-width="2"/>
+          <text x="388" y="180" class="box-title">Frontend único</text>
+          <text x="388" y="205" class="box-sub">ShiftTrack Web</text>
+          <text x="388" y="228" class="box-sub">Una sola base de producto</text>
+
+          <rect x="630" y="140" width="220" height="140" rx="18" fill="#eefaf1" stroke="#8fd0a0" stroke-width="2"/>
+          <text x="693" y="180" class="box-title">API única</text>
+          <text x="693" y="205" class="box-sub">Tenant resolver</text>
+          <text x="693" y="228" class="box-sub">Aislamiento lógico</text>
+
+          <rect x="930" y="80" width="180" height="80" rx="14" fill="#fff5e8" stroke="#f0c78a"/>
+          <text x="966" y="114" class="box-title">DB compartida</text>
+          <text x="966" y="136" class="box-sub">Tablas con TenantId</text>
+
+          <rect x="930" y="210" width="180" height="80" rx="14" fill="#fff5e8" stroke="#f0c78a"/>
+          <text x="955" y="244" class="box-title">DB por tenant</text>
+          <text x="955" y="266" class="box-sub">Más aislamiento</text>
+
+          <line x1="240" y1="90" x2="330" y2="190" stroke="#6b86a4" stroke-width="2" marker-end="url(#arrA)"/>
+          <line x1="240" y1="210" x2="330" y2="210" stroke="#6b86a4" stroke-width="2" marker-end="url(#arrA)"/>
+          <line x1="240" y1="330" x2="330" y2="230" stroke="#6b86a4" stroke-width="2" marker-end="url(#arrA)"/>
+          <line x1="550" y1="210" x2="630" y2="210" stroke="#6b86a4" stroke-width="2" marker-end="url(#arrA)"/>
+          <line x1="850" y1="185" x2="930" y2="120" stroke="#6b86a4" stroke-width="2" marker-end="url(#arrA)"/>
+          <line x1="850" y1="235" x2="930" y2="250" stroke="#6b86a4" stroke-width="2" marker-end="url(#arrA)"/>
+        </svg>
+      </div>
+      <div class="grid-3" style="margin-top:16px;">
+        <div class="card">
+          <h3>Ventajas</h3>
+          <ul>
+            <li>Menor costo de operación.</li>
+            <li>Más fácil de escalar.</li>
+            <li>Una sola versión del producto.</li>
+            <li>Más simple para desplegar mejoras.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Desventajas</h3>
+          <ul>
+            <li>Requiere más rigor en aislamiento de datos.</li>
+            <li>Mayor cuidado en queries y repositorios.</li>
+            <li>Más sensible a errores de segregación.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Cuándo conviene</h3>
+          <ul>
+            <li>Clientes pequeños y medianos.</li>
+            <li>Salida rápida al mercado.</li>
+            <li>Producto con visión de crecimiento.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>3. Opción B · Single-tenant</h2>
+      <p class="intro">
+        En un modelo single-tenant, cada cliente tiene su propia instancia del producto, su propio backend y su propia base de datos.
+        Aquí el aislamiento es mucho más fuerte, pero el costo operativo también sube.
+      </p>
+      <div class="grid-2">
+        <div class="card">
+          <h3>Cómo se ve para el cliente</h3>
+          <ul>
+            <li>Usa una URL dedicada.</li>
+            <li>Ejemplo: <strong>acme.shifttrack.com</strong> o un dominio propio del cliente.</li>
+            <li>La percepción es de plataforma exclusiva.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Cómo se gestiona internamente</h3>
+          <ul>
+            <li>Cada cliente tiene sus propios recursos.</li>
+            <li>Frontend, backend, base de datos y configuración separados.</li>
+            <li>Los cambios de infraestructura se gestionan por instancia.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="diagram">
+        <svg viewBox="0 0 1180 430" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Modelo single tenant">
+          <defs>
+            <marker id="arrB" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+              <path d="M0,0 L10,5 L0,10 Z" fill="#6b86a4"/>
+            </marker>
+          </defs>
+          <rect x="70" y="70" width="280" height="270" rx="20" fill="#f8fbff" stroke="#d8e4f1"/>
+          <text x="160" y="105" class="box-title">Cliente A</text>
+          <rect x="110" y="130" width="200" height="58" rx="12" fill="#eaf5ff" stroke="#8fc3f7"/>
+          <text x="140" y="165" class="box-title">Frontend A</text>
+          <rect x="110" y="205" width="200" height="58" rx="12" fill="#eefaf1" stroke="#8fd0a0"/>
+          <text x="145" y="240" class="box-title">Backend A</text>
+          <rect x="110" y="280" width="200" height="58" rx="12" fill="#fff5e8" stroke="#f0c78a"/>
+          <text x="170" y="315" class="box-title">DB A</text>
+
+          <rect x="450" y="70" width="280" height="270" rx="20" fill="#f8fbff" stroke="#d8e4f1"/>
+          <text x="540" y="105" class="box-title">Cliente B</text>
+          <rect x="490" y="130" width="200" height="58" rx="12" fill="#eaf5ff" stroke="#8fc3f7"/>
+          <text x="520" y="165" class="box-title">Frontend B</text>
+          <rect x="490" y="205" width="200" height="58" rx="12" fill="#eefaf1" stroke="#8fd0a0"/>
+          <text x="525" y="240" class="box-title">Backend B</text>
+          <rect x="490" y="280" width="200" height="58" rx="12" fill="#fff5e8" stroke="#f0c78a"/>
+          <text x="550" y="315" class="box-title">DB B</text>
+
+          <rect x="830" y="70" width="280" height="270" rx="20" fill="#f8fbff" stroke="#d8e4f1"/>
+          <text x="920" y="105" class="box-title">Cliente C</text>
+          <rect x="870" y="130" width="200" height="58" rx="12" fill="#eaf5ff" stroke="#8fc3f7"/>
+          <text x="900" y="165" class="box-title">Frontend C</text>
+          <rect x="870" y="205" width="200" height="58" rx="12" fill="#eefaf1" stroke="#8fd0a0"/>
+          <text x="905" y="240" class="box-title">Backend C</text>
+          <rect x="870" y="280" width="200" height="58" rx="12" fill="#fff5e8" stroke="#f0c78a"/>
+          <text x="930" y="315" class="box-title">DB C</text>
+
+          <line x1="210" y1="188" x2="210" y2="205" stroke="#6b86a4" stroke-width="2" marker-end="url(#arrB)"/>
+          <line x1="210" y1="263" x2="210" y2="280" stroke="#6b86a4" stroke-width="2" marker-end="url(#arrB)"/>
+          <line x1="590" y1="188" x2="590" y2="205" stroke="#6b86a4" stroke-width="2" marker-end="url(#arrB)"/>
+          <line x1="590" y1="263" x2="590" y2="280" stroke="#6b86a4" stroke-width="2" marker-end="url(#arrB)"/>
+          <line x1="970" y1="188" x2="970" y2="205" stroke="#6b86a4" stroke-width="2" marker-end="url(#arrB)"/>
+          <line x1="970" y1="263" x2="970" y2="280" stroke="#6b86a4" stroke-width="2" marker-end="url(#arrB)"/>
+        </svg>
+      </div>
+      <div class="grid-3" style="margin-top:16px;">
+        <div class="card">
+          <h3>Ventajas</h3>
+          <ul>
+            <li>Aislamiento más fuerte.</li>
+            <li>Mejor encaje con clientes enterprise.</li>
+            <li>Más libertad para configuraciones dedicadas.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Desventajas</h3>
+          <ul>
+            <li>Más costoso de operar.</li>
+            <li>Más despliegues y más mantenimiento.</li>
+            <li>Mayor costo de soporte por cliente.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Cuándo conviene</h3>
+          <ul>
+            <li>Clientes grandes o regulados.</li>
+            <li>Requisitos fuertes de seguridad.</li>
+            <li>Contratos premium o dedicados.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>4. Comparación directa</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Criterio</th>
+            <th>Multi-tenant</th>
+            <th>Single-tenant</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Costo operativo</strong></td>
+            <td>Más bajo</td>
+            <td>Más alto</td>
+          </tr>
+          <tr>
+            <td><strong>Escalabilidad comercial</strong></td>
+            <td>Muy alta</td>
+            <td>Más lenta</td>
+          </tr>
+          <tr>
+            <td><strong>Aislamiento</strong></td>
+            <td>Lógico</td>
+            <td>Dedicado</td>
+          </tr>
+          <tr>
+            <td><strong>Facilidad para actualizar</strong></td>
+            <td>Alta</td>
+            <td>Media</td>
+          </tr>
+          <tr>
+            <td><strong>Encaje enterprise</strong></td>
+            <td>Bueno, con controles fuertes</td>
+            <td>Muy bueno</td>
+          </tr>
+          <tr>
+            <td><strong>Complejidad operativa</strong></td>
+            <td>Media</td>
+            <td>Alta</td>
+          </tr>
+          <tr>
+            <td><strong>Mejor uso</strong></td>
+            <td>Mercado base</td>
+            <td>Clientes premium</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>5. Recomendación para salir al mercado</h2>
+      <div class="grid-2">
+        <div class="card">
+          <h3>Recomendación principal</h3>
+          <p>
+            Lanzar ShiftTrack primero como <strong>SaaS multi-tenant con subdominio por cliente</strong>.
+            Es el camino más sano para crecer, vender más rápido y no disparar costos desde el primer día.
+          </p>
+        </div>
+        <div class="card">
+          <h3>Oferta premium</h3>
+          <p>
+            Dejar <strong>single-tenant</strong> como opción enterprise. Eso permite atender clientes más exigentes
+            sin obligar a que toda la base comercial pague el costo de esa complejidad.
+          </p>
+        </div>
+      </div>
+      <div class="quote" style="margin-top:16px;">
+        En resumen: estándar en multi-tenant, premium en single-tenant. Ese modelo da escalabilidad sin cerrar la puerta a clientes grandes.
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>6. Cómo se vendería</h2>
+      <p class="intro">
+        La forma más lógica de vender ShiftTrack es por suscripción, no como entrega de código. Lo que se comercializa es acceso a la plataforma,
+        operación del servicio, mejoras del producto y soporte.
+      </p>
+      <div class="grid-3">
+        <div class="card">
+          <h3>Modelo base</h3>
+          <ul>
+            <li>Suscripción mensual o anual.</li>
+            <li>Fee inicial de implementación.</li>
+            <li>Soporte según plan.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Cómo se puede cobrar</h3>
+          <ul>
+            <li>Por rangos de usuarios.</li>
+            <li>Por operación o sede.</li>
+            <li>Por plan funcional.</li>
+            <li>Por instancia dedicada en enterprise.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Qué se puede vender como add-on</h3>
+          <ul>
+            <li>SSO / Entra ID.</li>
+            <li>Instancia dedicada.</li>
+            <li>Branding por cliente.</li>
+            <li>Reportes o soporte premium.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>7. Propuesta inicial de planes</h2>
+      <div class="pricing">
+        <div class="pricing-card">
+          <h3>Starter</h3>
+          <div class="price">US$499 <span>/ mes</span></div>
+          <p style="margin-bottom:14px;">Pensado para equipos pequeños que necesitan orden y visibilidad sin mucha personalización.</p>
+          <ul>
+            <li>Hasta 50 usuarios</li>
+            <li>Shift Calendar</li>
+            <li>PTO y Change Request</li>
+            <li>Requests</li>
+            <li>Soporte estándar</li>
+          </ul>
+        </div>
+        <div class="pricing-card featured">
+          <h3>Business</h3>
+          <div class="price">US$1,290 <span>/ mes</span></div>
+          <p style="margin-bottom:14px;">Plan recomendado para salir al mercado. Cubre la operación completa de una empresa mediana.</p>
+          <ul>
+            <li>Hasta 250 usuarios</li>
+            <li>Todo lo del plan Starter</li>
+            <li>Employees</li>
+            <li>Coverage</li>
+            <li>Export</li>
+            <li>Soporte mejorado</li>
+          </ul>
+        </div>
+        <div class="pricing-card">
+          <h3>Enterprise</h3>
+          <div class="price">Desde US$3,500 <span>/ mes</span></div>
+          <p style="margin-bottom:14px;">Para clientes que exigen más aislamiento, más seguridad o una operación dedicada.</p>
+          <ul>
+            <li>Usuarios a medida</li>
+            <li>SSO / Entra ID</li>
+            <li>Single-tenant opcional</li>
+            <li>Branding dedicado</li>
+            <li>Soporte prioritario</li>
+            <li>Configuración avanzada</li>
+          </ul>
+        </div>
+      </div>
+      <div class="badge-row">
+        <span class="badge green">Setup fee sugerido: US$2,000 a US$8,000</span>
+        <span class="badge blue">Descuento por pago anual</span>
+        <span class="badge gold">Servicios premium cotizados aparte</span>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>8. Qué incluiría cada venta</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Componente</th>
+            <th>Incluido base</th>
+            <th>Opcional / premium</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Plataforma web</strong></td>
+            <td>Sí</td>
+            <td>No</td>
+          </tr>
+          <tr>
+            <td><strong>Calendario y cobertura</strong></td>
+            <td>Sí</td>
+            <td>No</td>
+          </tr>
+          <tr>
+            <td><strong>PTO y Change Request</strong></td>
+            <td>Sí</td>
+            <td>No</td>
+          </tr>
+          <tr>
+            <td><strong>Gestión de empleados</strong></td>
+            <td>Desde Business</td>
+            <td>No</td>
+          </tr>
+          <tr>
+            <td><strong>SSO con Entra ID</strong></td>
+            <td>Desde Enterprise o add-on</td>
+            <td>Sí</td>
+          </tr>
+          <tr>
+            <td><strong>Instancia dedicada</strong></td>
+            <td>No</td>
+            <td>Sí</td>
+          </tr>
+          <tr>
+            <td><strong>Custom domain</strong></td>
+            <td>No</td>
+            <td>Sí</td>
+          </tr>
+          <tr>
+            <td><strong>Soporte premium</strong></td>
+            <td>No</td>
+            <td>Sí</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>9. Qué implica operarlo bien</h2>
+      <div class="grid-4">
+        <div class="card">
+          <h3>Infraestructura</h3>
+          <p>Frontend, backend, base de datos, monitoreo, backups y configuración por ambiente.</p>
+        </div>
+        <div class="card">
+          <h3>Seguridad</h3>
+          <p>Autenticación, segregación por tenant, escaneo, revisión de dependencias y manejo correcto de secretos.</p>
+        </div>
+        <div class="card">
+          <h3>Soporte</h3>
+          <p>Onboarding, soporte funcional, soporte técnico y mantenimiento evolutivo del producto.</p>
+        </div>
+        <div class="card">
+          <h3>Producto</h3>
+          <p>Roadmap, releases, priorización de mejoras y control claro de lo que es estándar vs. custom.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>10. Ruta sugerida</h2>
+      <div class="grid-3">
+        <div class="card">
+          <h3>Fase 1</h3>
+          <ul>
+            <li>Formalizar ShiftTrack como producto SaaS.</li>
+            <li>Definir marca, pricing y contrato base.</li>
+            <li>Salir con multi-tenant.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Fase 2</h3>
+          <ul>
+            <li>Agregar tenant management.</li>
+            <li>Subdominios por cliente.</li>
+            <li>Configuración por tenant.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Fase 3</h3>
+          <ul>
+            <li>Habilitar enterprise con instancia dedicada.</li>
+            <li>Expandir soporte premium.</li>
+            <li>Agregar módulos comerciales nuevos.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Conclusión</h2>
+      <div class="quote">
+        Si la empresa quiere vender ShiftTrack de forma seria, la mejor jugada es convertirlo en un producto SaaS con planes claros.
+        Lo más recomendable sería salir primero con un modelo multi-tenant bien controlado, y dejar single-tenant como oferta premium
+        para clientes enterprise. Eso permite crecer, mantener control de costos y al mismo tiempo abrir la puerta a cuentas de mayor valor.
+      </div>
+    </section>
+
+    <div class="footer">
+      ShiftTrack · Documento de opciones de venta, hosting y planes
+    </div>
+  </div>
+</body>
+</html>

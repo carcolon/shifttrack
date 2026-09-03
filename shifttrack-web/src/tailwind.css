@@ -1,0 +1,40 @@
+/* Safe Tailwind foundation only.
+   No screens should depend on these utilities yet. */
+@layer theme, utilities;
+
+@import "tailwindcss/theme.css" layer(theme) prefix(tw);
+@import "tailwindcss/utilities.css" layer(utilities) prefix(tw);
+
+@theme {
+  --font-sans: "Poppins", "Nunito Sans", system-ui, -apple-system, sans-serif;
+
+  --color-brand-50: #eef7ff;
+  --color-brand-100: #d9efff;
+  --color-brand-200: #b8dfff;
+  --color-brand-300: #86c7f2;
+  --color-brand-400: #58afe6;
+  --color-brand-500: #41bce5;
+  --color-brand-600: #317eb5;
+  --color-brand-700: #32425d;
+  --color-brand-800: #1f3555;
+  --color-brand-900: #162d4d;
+
+  --color-ink-950: #172033;
+  --color-slate-25: #f8fbff;
+  --color-slate-50: #f4f7fb;
+  --color-slate-100: #e7edf5;
+  --color-slate-200: #d8e0ea;
+  --color-slate-300: #b9c5d6;
+  --color-slate-500: #64748b;
+  --color-slate-700: #42526b;
+
+  --color-success-100: #dcfce7;
+  --color-success-700: #15803d;
+  --color-warning-100: #fef3c7;
+  --color-warning-700: #a16207;
+  --color-danger-100: #fee2e2;
+  --color-danger-700: #b91c1c;
+
+  --shadow-panel: 0 18px 38px rgba(3, 24, 53, 0.12);
+  --shadow-soft: 0 8px 24px rgba(3, 24, 53, 0.08);
+}

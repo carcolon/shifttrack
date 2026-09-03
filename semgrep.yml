@@ -1,0 +1,188 @@
+rules:
+  - id: shifttrack-pentest-high-users-exposed-to-employee
+    message: "Pentest F-01: GET /users no debe estar autorizado para EmployeeOrAbove; usa ManagerOrAbove o scope propio."
+    severity: ERROR
+    languages: [generic]
+    paths:
+      include:
+        - /shifttrack-api/ShiftTrack.Api/UserEndpoints.cs
+    pattern-regex: 'MapGet\("/users"[\s\S]*?RequireAuthorization\("EmployeeOrAbove"\)'
+    metadata:
+      category: security
+      pentest_finding: F-01
+      owasp: ["A01:2021 - Broken Access Control"]
+
+  - id: shifttrack-pentest-info-calendar-visible-to-employees
+    message: "Pentest F-02 accepted risk: GET /calendar es visible para empleados por requerimiento funcional de calendario compartido."
+    severity: INFO
+    languages: [generic]
+    paths:
+      include:
+        - /shifttrack-api/ShiftTrack.Api/ScheduleEndpoints.cs
+    pattern-regex: 'MapGet\("/calendar"[\s\S]*?RequireAuthorization\("EmployeeOrAbove"\)'
+    metadata:
+      category: security
+      pentest_finding: F-02
+      owasp: ["A01:2021 - Broken Access Control"]
+
+  - id: shifttrack-pentest-high-assistant-unscoped-users
+    message: "Pentest F-04: Assistant no debe consultar GetAllAsync/GetInactiveAsync sin pasarlo por ScopeUsersForCaller."
+    severity: ERROR
+    languages: [generic]
+    paths:
+      include:
+        - /shifttrack-api/ShiftTrack.Api/AssistantWorkflowService.cs
+    pattern-either:
+      - pattern-regex: '=\s*await\s+_users\.GetAllAsync\(\)\s*;'
+      - pattern-regex: '=\s*await\s+_users\.GetInactiveAsync\(\)\s*;'
+      - pattern-regex: 'ApplyUserFilters\(\(await\s+_users\.GetAllAsync\(\)\)\.ToArray\(\)'
+    metadata:
+      category: security
+      pentest_finding: F-04
+      owasp: ["A01:2021 - Broken Access Control"]
+
+  - id: shifttrack-pentest-high-pto-review-missing-company-scope
+    message: "Pentest F-13: PTO review debe resolver callerUser y validar IsInCallerCompanyScope antes de aprobar/denegar."
+    severity: ERROR
+    languages: [generic]
+    paths:
+      include:
+        - /shifttrack-api/ShiftTrack.Api/ScheduleWorkflowService.cs
+    pattern-regex: 'ReviewPtoRequestAsync[\s\S]*?AuthorizeAsync\([\s\S]*?CanReviewPto[\s\S]*?return action == ReviewAction\.Approve'
+    pattern-not-regex: 'ReviewPtoRequestAsync[\s\S]*?IsInCallerCompanyScope\(callerUser,\s*targetUser\)[\s\S]*?return action == ReviewAction\.Approve'
+    metadata:
+      category: security
+      pentest_finding: F-13
+      owasp: ["A01:2021 - Broken Access Control"]
+
+  - id: shifttrack-pentest-critical-user-purge-hard-delete
+    message: "Pentest F-14: /users/{id}/purge solo puede ejecutar HardDeleteAsync con SuperAdmin system-hidden, confirmacion explicita y target inactivo."
+    severity: ERROR
+    languages: [generic]
+    paths:
+      include:
+        - /shifttrack-api/ShiftTrack.Api/UserWorkflowService.cs
+    pattern-regex: 'PurgeUserAsync[\s\S]*?HardDeleteAsync\('
+    pattern-not-regex: 'PurgeUserAsync[\s\S]*?callerUser\.IsSystemHidden[\s\S]*?X-Purge-Confirm[\s\S]*?existing\.IsActive[\s\S]*?HardDeleteAsync\('
+    metadata:
+      category: security
+      pentest_finding: F-14
+      owasp: ["A01:2021 - Broken Access Control"]
+
+  - id: shifttrack-pentest-high-swagger-prod-enabled
+    message: "Pentest F-03: Swagger puede estar habilitado en dev, pero no debe quedar habilitado por defecto ni en appsettings/pipeline de prod."
+    severity: ERROR
+    languages: [generic]
+    paths:
+      include:
+        - /shifttrack-api/ShiftTrack.Api/appsettings.json
+        - /shifttrack-api/azure-pipelines-prod.yml
+    pattern-regex: 'Swagger(:|__)?Enabled"?\s*[:=]\s*(true|True|"true")'
+    metadata:
+      category: security
+      pentest_finding: F-03
+      owasp: ["A05:2021 - Security Misconfiguration"]
+
+  - id: shifttrack-csharp-trusts-x-role-header
+    message: "No confies en X-Role para autorizacion. Usa claims/JWT validados en servidor."
+    severity: ERROR
+    languages: [csharp]
+    patterns:
+      - pattern: $CTX.Request.Headers["X-Role"].FirstOrDefault()
+    metadata:
+      category: security
+      technology: [aspnet-core]
+      owasp: ["A01:2021 - Broken Access Control"]
+
+  - id: shifttrack-csharp-trusts-x-user-email-header
+    message: "No confies en X-User-Email para identidad. Usa claims del token."
+    severity: ERROR
+    languages: [csharp]
+    patterns:
+      - pattern: $CTX.Request.Headers["X-User-Email"].FirstOrDefault()
+    metadata:
+      category: security
+      technology: [aspnet-core]
+      owasp: ["A07:2021 - Identification and Authentication Failures"]
+
+  - id: shifttrack-csharp-cors-allow-any-origin
+    message: "AllowAnyOrigin en API es riesgoso. Restringe origins por entorno."
+    severity: WARNING
+    languages: [csharp]
+    patterns:
+      - pattern: $POLICY.AllowAnyOrigin()
+    metadata:
+      category: security
+      technology: [aspnet-core]
+      owasp: ["A05:2021 - Security Misconfiguration"]
+
+  - id: shifttrack-csharp-missing-ratelimit
+    message: "No se detecta rate limiting para endpoints sensibles."
+    severity: INFO
+    languages: [csharp]
+    patterns:
+      - pattern-not: builder.Services.AddRateLimiter(...)
+      - pattern-inside: |
+          var builder = WebApplication.CreateBuilder(args);
+          ...
+    paths:
+      include:
+        - /shifttrack-api/ShiftTrack.Api/Program.cs
+    metadata:
+      category: security
+      owasp: ["A04:2021 - Insecure Design"]
+
+  - id: shifttrack-ts-stores-user-in-localstorage
+    message: "Evita guardar datos de sesion sensibles en storage del navegador."
+    severity: WARNING
+    languages: [typescript, javascript]
+    pattern-either:
+      - pattern: localStorage.setItem($KEY, $VALUE)
+      - pattern: sessionStorage.setItem($KEY, $VALUE)
+    metadata:
+      category: security
+      technology: [react]
+      owasp: ["A07:2021 - Identification and Authentication Failures"]
+
+  - id: shifttrack-ts-sensitive-query-param
+    message: "Valores sensibles en query string pueden filtrarse en logs o referrer."
+    severity: WARNING
+    languages: [typescript, javascript]
+    pattern-either:
+      - pattern: new URLSearchParams(window.location.search).get("token")
+      - pattern: new URLSearchParams(window.location.search).get("code")
+      - pattern: new URLSearchParams(window.location.search).get("exchangeToken")
+    metadata:
+      category: security
+      technology: [react]
+      owasp: ["A02:2021 - Cryptographic Failures", "A01:2021 - Broken Access Control"]
+
+  - id: shifttrack-ts-sends-privileged-headers
+    message: "Enviar X-Role/X-User-Email desde cliente permite spoofing si backend confia en ellos."
+    severity: ERROR
+    languages: [typescript, javascript]
+    patterns:
+      - pattern-either:
+          - pattern: "'X-Role': ..."
+          - pattern: "\"X-Role\": ..."
+          - pattern: "'X-User-Email': ..."
+          - pattern: "\"X-User-Email\": ..."
+    metadata:
+      category: security
+      technology: [react]
+      owasp: ["A01:2021 - Broken Access Control"]
+
+  - id: shifttrack-csharp-possible-sqli-interpolated-query
+    message: "Posible SQL injection: evita query SQL interpolada/dinamica."
+    severity: ERROR
+    languages: [csharp]
+    patterns:
+      - pattern-either:
+          - pattern: var $SQL = $"...SELECT ...";
+          - pattern: var $SQL = $"...UPDATE ...";
+          - pattern: var $SQL = $"...DELETE ...";
+          - pattern: var $SQL = $"...INSERT ...";
+    metadata:
+      category: security
+      technology: [dapper, sql]
+      owasp: ["A03:2021 - Injection"]

@@ -1,0 +1,29 @@
+# Build results
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+
+# User-specific files
+*.user
+*.rsuser
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio
+.vs/
+
+# Rider
+.idea/
+
+# Dotnet tools
+*.dbmdl
+*.jfm
+
+# Others
+*.log
+.env
+.DS_Store
+shifttrack-api.sln
+reports/
+semgrep-report.*

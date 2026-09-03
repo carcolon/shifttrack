@@ -1,0 +1,538 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ShiftTrack - Resumen Ejecutivo y Comercial</title>
+  <style>
+    :root {
+      --bg: #eef5fc;
+      --panel: rgba(255,255,255,0.94);
+      --ink: #16385d;
+      --muted: #5e7492;
+      --line: #d8e4f1;
+      --blue: #2485e6;
+      --blue-deep: #163b61;
+      --blue-soft: #eaf5ff;
+      --green-soft: #edf9f1;
+      --gold-soft: #fff7e9;
+      --shadow: 0 18px 48px rgba(22, 56, 93, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(36, 133, 230, 0.18), transparent 28%),
+        radial-gradient(circle at top right, rgba(75, 185, 255, 0.12), transparent 26%),
+        linear-gradient(180deg, #f8fbff 0%, var(--bg) 100%);
+      color: var(--ink);
+    }
+
+    .page {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 28px 22px 72px;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      border-radius: 28px;
+      padding: 34px 34px 30px;
+      background: linear-gradient(135deg, rgba(22,59,97,0.98), rgba(36,133,230,0.92));
+      color: #fff;
+      box-shadow: var(--shadow);
+    }
+
+    .hero::before,
+    .hero::after {
+      content: "";
+      position: absolute;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.1);
+      filter: blur(2px);
+    }
+
+    .hero::before {
+      width: 360px;
+      height: 360px;
+      top: -140px;
+      right: -100px;
+    }
+
+    .hero::after {
+      width: 240px;
+      height: 240px;
+      left: -70px;
+      bottom: -90px;
+    }
+
+    .eyebrow {
+      margin-bottom: 12px;
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      opacity: 0.78;
+    }
+
+    h1, h2, h3, h4 {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: 42px;
+      line-height: 1.05;
+      margin-bottom: 14px;
+    }
+
+    .hero p {
+      max-width: 860px;
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.65;
+      color: rgba(255,255,255,0.92);
+    }
+
+    .hero-grid {
+      margin-top: 24px;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .hero-card {
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 18px;
+      padding: 16px 18px;
+      backdrop-filter: blur(10px);
+    }
+
+    .hero-card strong {
+      display: block;
+      font-size: 25px;
+      margin-bottom: 4px;
+    }
+
+    .hero-card span {
+      font-size: 13px;
+      color: rgba(255,255,255,0.85);
+    }
+
+    .section {
+      margin-top: 24px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 26px;
+      box-shadow: var(--shadow);
+    }
+
+    .section h2 {
+      font-size: 28px;
+      color: var(--ink);
+      margin-bottom: 10px;
+    }
+
+    .intro {
+      margin: 0 0 18px;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.7;
+    }
+
+    .grid-2,
+    .grid-3,
+    .grid-4 {
+      display: grid;
+      gap: 16px;
+    }
+
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+    .card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+    }
+
+    .card h3 {
+      font-size: 20px;
+      color: var(--ink);
+      margin-bottom: 10px;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.65;
+      font-size: 15px;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      line-height: 1.75;
+    }
+
+    li + li {
+      margin-top: 2px;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .pill {
+      padding: 9px 13px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      border: 1px solid transparent;
+    }
+
+    .pill.blue {
+      background: var(--blue-soft);
+      color: #165287;
+      border-color: #cfe6fb;
+    }
+
+    .pill.green {
+      background: var(--green-soft);
+      color: #217a4f;
+      border-color: #d3ecd9;
+    }
+
+    .pill.gold {
+      background: var(--gold-soft);
+      color: #8d6515;
+      border-color: #f2dfb2;
+    }
+
+    .journey {
+      display: grid;
+      gap: 14px;
+    }
+
+    .journey-step {
+      display: grid;
+      grid-template-columns: 56px 1fr;
+      gap: 14px;
+      align-items: start;
+      padding: 16px;
+      border-radius: 18px;
+      background: #fff;
+      border: 1px solid var(--line);
+    }
+
+    .journey-num {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, var(--blue), #56b0ff);
+      color: #fff;
+      font-size: 22px;
+      font-weight: 800;
+    }
+
+    .journey-step h3 {
+      font-size: 19px;
+      margin-bottom: 6px;
+      color: var(--ink);
+    }
+
+    .journey-step p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      overflow: hidden;
+      background: #fff;
+      margin-top: 8px;
+    }
+
+    th, td {
+      padding: 14px 16px;
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid var(--line);
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+
+    th {
+      background: #f6faff;
+      color: var(--ink);
+      text-transform: uppercase;
+      font-size: 13px;
+      letter-spacing: 0.08em;
+    }
+
+    td strong {
+      color: var(--ink);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .quote {
+      background: linear-gradient(135deg, #edf6ff, #ffffff);
+      border: 1px solid #d6e8fb;
+      border-radius: 20px;
+      padding: 18px 20px;
+      color: #345475;
+      font-size: 17px;
+      line-height: 1.7;
+    }
+
+    .footer {
+      margin-top: 24px;
+      text-align: center;
+      color: #6a85a3;
+      font-size: 14px;
+    }
+
+    @media (max-width: 1080px) {
+      .hero-grid,
+      .grid-4,
+      .grid-3,
+      .grid-2 {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .page { padding: 18px 14px 48px; }
+      h1 { font-size: 32px; }
+      .hero-grid,
+      .grid-4,
+      .grid-3,
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+      .journey-step {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <section class="hero">
+      <div class="eyebrow">Resumen Ejecutivo y Comercial</div>
+      <h1>ShiftTrack</h1>
+      <p>
+        ShiftTrack es una plataforma diseñada para centralizar horarios, cobertura, solicitudes operativas y administración
+        de personal en una sola experiencia. Su valor principal es convertir la operación diaria en algo más claro, más visible
+        y mucho más fácil de gestionar.
+      </p>
+      <div class="hero-grid">
+        <div class="hero-card">
+          <strong>Visibilidad</strong>
+          <span>del calendario, cobertura y estados del equipo</span>
+        </div>
+        <div class="hero-card">
+          <strong>Control</strong>
+          <span>sobre solicitudes, revisiones y administración</span>
+        </div>
+        <div class="hero-card">
+          <strong>Agilidad</strong>
+          <span>para PTO, cambios de turno y seguimiento</span>
+        </div>
+        <div class="hero-card">
+          <strong>Escalabilidad</strong>
+          <span>con acceso diferenciado por rol</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Versión ejecutiva</h2>
+      <p class="intro">
+        ShiftTrack sirve para ordenar la operación alrededor de un calendario central. Permite saber quién trabaja, quién no,
+        cómo está la cobertura, qué solicitudes están abiertas y qué decisiones ya fueron tomadas.
+      </p>
+      <div class="grid-3">
+        <div class="card">
+          <h3>Qué resuelve</h3>
+          <p>Reduce la dispersión operativa. En lugar de manejar horarios, ausencias y cambios en varios frentes, todo vive en una misma plataforma.</p>
+        </div>
+        <div class="card">
+          <h3>Qué mejora</h3>
+          <p>Mejora visibilidad, velocidad de revisión y trazabilidad. Cada solicitud, ajuste o movimiento queda claro para los perfiles autorizados.</p>
+        </div>
+        <div class="card">
+          <h3>Qué entrega al negocio</h3>
+          <p>Una operación más predecible, una lectura más clara de la cobertura y menos fricción administrativa entre empleados, líderes y revisión.</p>
+        </div>
+      </div>
+      <div class="pill-row">
+        <span class="pill blue">Calendario operativo</span>
+        <span class="pill blue">Cobertura</span>
+        <span class="pill green">PTO</span>
+        <span class="pill green">Change Request</span>
+        <span class="pill gold">Gestión de empleados</span>
+        <span class="pill gold">Revisión y trazabilidad</span>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Versión comercial</h2>
+      <p class="intro">
+        ShiftTrack no es solo una vista bonita de horarios. Es una herramienta pensada para equipos que necesitan operar con
+        ritmo, responder rápido a cambios y tener una referencia confiable para tomar decisiones del día a día.
+      </p>
+      <div class="grid-2">
+        <div class="quote">
+          ShiftTrack ayuda a que el equipo vea lo mismo, trabaje sobre la misma información y tome decisiones con menos fricción.
+        </div>
+        <div class="quote">
+          En términos simples: menos caos operativo, menos trabajo manual y más visibilidad real sobre lo que está pasando en la programación.
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Qué puede hacer ShiftTrack</h2>
+      <div class="grid-4">
+        <div class="card">
+          <h3>Consultar horarios</h3>
+          <p>Permite ver turnos semanales, días off, PTO, coverage y navegar entre semanas o entre años completos.</p>
+        </div>
+        <div class="card">
+          <h3>Gestionar solicitudes</h3>
+          <p>El equipo puede crear solicitudes de tiempo libre y solicitudes de cambio de horario de una forma estructurada.</p>
+        </div>
+        <div class="card">
+          <h3>Revisar y aprobar</h3>
+          <p>Managers y Admins cuentan con pantallas de revisión para aprobar o rechazar solicitudes con trazabilidad clara.</p>
+        </div>
+        <div class="card">
+          <h3>Administrar personal</h3>
+          <p>La app permite crear, editar, reactivar y organizar empleados junto con sus periodos de horario.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Experiencia de uso</h2>
+      <div class="journey">
+        <div class="journey-step">
+          <div class="journey-num">1</div>
+          <div>
+            <h3>Ingreso</h3>
+            <p>La persona entra con credenciales o mediante SSO con Microsoft Entra ID y accede al dashboard según su rol.</p>
+          </div>
+        </div>
+        <div class="journey-step">
+          <div class="journey-num">2</div>
+          <div>
+            <h3>Consulta operativa</h3>
+            <p>Desde Shift Calendar revisa su semana, la del equipo, la cobertura y la visibilidad de festivos o eventos programados.</p>
+          </div>
+        </div>
+        <div class="journey-step">
+          <div class="journey-num">3</div>
+          <div>
+            <h3>Acción</h3>
+            <p>Puede solicitar un PTO, proponer un Change Request o, si tiene permisos, gestionar empleados y revisar solicitudes.</p>
+          </div>
+        </div>
+        <div class="journey-step">
+          <div class="journey-num">4</div>
+          <div>
+            <h3>Seguimiento</h3>
+            <p>La solicitud queda visible en Requests y el resultado se refleja nuevamente en el calendario, manteniendo coherencia entre operación y revisión.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Roles y alcance</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Rol</th>
+            <th>Enfoque</th>
+            <th>Alcance dentro de ShiftTrack</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Employee</strong></td>
+            <td>Uso personal</td>
+            <td>Consulta calendario, revisa su información, solicita PTO y Change Request.</td>
+          </tr>
+          <tr>
+            <td><strong>Team Leader</strong></td>
+            <td>Visibilidad operativa</td>
+            <td>Tiene la base del Employee y además puede visualizar coverage.</td>
+          </tr>
+          <tr>
+            <td><strong>Manager</strong></td>
+            <td>Gestión y revisión</td>
+            <td>Revisa solicitudes, puede gestionar empleados y trabajar sobre escenarios operativos especiales.</td>
+          </tr>
+          <tr>
+            <td><strong>Admin</strong></td>
+            <td>Administración completa</td>
+            <td>Tiene el mayor alcance dentro de la plataforma para administración y revisión.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>Qué hace valiosa esta solución</h2>
+      <div class="grid-3">
+        <div class="card">
+          <h3>Fuente única de verdad</h3>
+          <p>Todos miran el mismo calendario, los mismos estados y la misma información actualizada.</p>
+        </div>
+        <div class="card">
+          <h3>Menos trabajo manual</h3>
+          <p>Las reglas de PTO, vacaciones, festivos y cambios de turno viven dentro de la app y no dependen de manejo informal.</p>
+        </div>
+        <div class="card">
+          <h3>Más orden para escalar</h3>
+          <p>La plataforma ya contempla roles, revisiones, flujos y visibilidad, lo que facilita crecer con más personas y más estructura.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Mensaje final para presentación</h2>
+      <div class="quote">
+        ShiftTrack convierte la programación del equipo en una experiencia visible, ordenada y accionable. En lugar de depender de múltiples herramientas o validaciones manuales,
+        la operación se apoya en una sola plataforma para ver horarios, gestionar solicitudes, revisar cambios y mantener la cobertura bajo control.
+      </div>
+    </section>
+
+    <div class="footer">
+      ShiftTrack · Resumen ejecutivo y comercial
+    </div>
+  </div>
+</body>
+</html>

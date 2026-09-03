@@ -1,0 +1,11 @@
+{
+	"folders": [
+		{
+			"path": "shifttrack-web"
+		},
+		{
+			"path": "shifttrack-api"
+		}
+	],
+	"settings": {}
+}

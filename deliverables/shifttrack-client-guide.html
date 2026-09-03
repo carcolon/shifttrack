@@ -1,0 +1,849 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ShiftTrack - Guía General para Cliente</title>
+  <style>
+    :root {
+      --bg: #edf4fb;
+      --panel: rgba(255, 255, 255, 0.92);
+      --ink: #183456;
+      --muted: #5a7190;
+      --line: #d5e2f0;
+      --blue: #2688e8;
+      --blue-soft: #e9f4ff;
+      --green-soft: #eefaf1;
+      --green: #2e9f61;
+      --gold-soft: #fff7e8;
+      --gold: #b9851b;
+      --shadow: 0 18px 48px rgba(23, 58, 94, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(38, 136, 232, 0.18), transparent 34%),
+        radial-gradient(circle at top right, rgba(44, 174, 255, 0.14), transparent 28%),
+        linear-gradient(180deg, #f4f9ff 0%, var(--bg) 100%);
+      color: var(--ink);
+    }
+
+    .page {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 28px 22px 80px;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, rgba(24, 52, 86, 0.96), rgba(38, 136, 232, 0.9));
+      border-radius: 28px;
+      padding: 34px 36px;
+      color: #fff;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before,
+    .hero::after {
+      content: "";
+      position: absolute;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.1);
+      filter: blur(2px);
+    }
+
+    .hero::before {
+      width: 320px;
+      height: 320px;
+      top: -120px;
+      right: -80px;
+    }
+
+    .hero::after {
+      width: 220px;
+      height: 220px;
+      bottom: -90px;
+      left: -60px;
+    }
+
+    .eyebrow {
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 0.24em;
+      opacity: 0.8;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    h1, h2, h3 {
+      margin: 0;
+      color: inherit;
+    }
+
+    h1 {
+      font-size: 42px;
+      line-height: 1.04;
+      margin-bottom: 14px;
+    }
+
+    .hero p {
+      max-width: 860px;
+      font-size: 18px;
+      line-height: 1.6;
+      margin: 0;
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 26px;
+    }
+
+    .hero-card {
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 18px;
+      padding: 16px 18px;
+      backdrop-filter: blur(10px);
+    }
+
+    .hero-card strong {
+      display: block;
+      font-size: 26px;
+      margin-bottom: 4px;
+    }
+
+    .hero-card span {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.82);
+    }
+
+    .section {
+      margin-top: 26px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 26px;
+      box-shadow: var(--shadow);
+    }
+
+    .section h2 {
+      color: var(--ink);
+      font-size: 28px;
+      margin-bottom: 12px;
+    }
+
+    .section-intro {
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.65;
+      margin-bottom: 18px;
+    }
+
+    .grid-2,
+    .grid-3,
+    .grid-4 {
+      display: grid;
+      gap: 16px;
+    }
+
+    .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+    .card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 18px;
+    }
+
+    .card h3 {
+      color: var(--ink);
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.65;
+      font-size: 15px;
+    }
+
+    .chip-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 12px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      border: 1px solid transparent;
+    }
+
+    .chip.blue {
+      background: var(--blue-soft);
+      color: #165287;
+      border-color: #cbe3fb;
+    }
+
+    .chip.green {
+      background: var(--green-soft);
+      color: #1f7f4d;
+      border-color: #cdebd8;
+    }
+
+    .chip.gold {
+      background: var(--gold-soft);
+      color: #8d6110;
+      border-color: #f0dcaa;
+    }
+
+    .stack {
+      display: grid;
+      gap: 14px;
+    }
+
+    .flow {
+      display: grid;
+      gap: 14px;
+      margin-top: 14px;
+    }
+
+    .flow-step {
+      display: grid;
+      grid-template-columns: 56px 1fr;
+      gap: 14px;
+      align-items: start;
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+    }
+
+    .flow-num {
+      width: 56px;
+      height: 56px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #1f7dd6, #57b0ff);
+      color: #fff;
+      font-size: 22px;
+      font-weight: 800;
+    }
+
+    .flow-step h3 {
+      font-size: 19px;
+      color: var(--ink);
+      margin-bottom: 6px;
+    }
+
+    .flow-step p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      line-height: 1.8;
+    }
+
+    li + li {
+      margin-top: 2px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+      overflow: hidden;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: #fff;
+    }
+
+    th, td {
+      padding: 14px 16px;
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid var(--line);
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f6faff;
+      color: var(--ink);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    td strong {
+      color: var(--ink);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .note {
+      margin-top: 14px;
+      padding: 14px 16px;
+      background: #f6faff;
+      border: 1px solid #d8e9fb;
+      border-radius: 16px;
+      color: #46627f;
+      line-height: 1.65;
+      font-size: 14px;
+    }
+
+    .footer {
+      margin-top: 26px;
+      color: #65809f;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    @media (max-width: 1080px) {
+      .hero-grid,
+      .grid-4,
+      .grid-3,
+      .grid-2 {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .page { padding: 18px 14px 48px; }
+      h1 { font-size: 32px; }
+      .hero-grid,
+      .grid-4,
+      .grid-3,
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+      .flow-step {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <section class="hero">
+      <div class="eyebrow">Guía General del Producto</div>
+      <h1>ShiftTrack</h1>
+      <p>
+        ShiftTrack es una plataforma para organizar turnos, visualizar cobertura, administrar personal y gestionar solicitudes
+        de tiempo libre y cambios de horario. Su objetivo es centralizar la operación diaria, reducir fricción entre equipos y
+        dar visibilidad real sobre lo que está ocurriendo en cada semana y en cada área.
+      </p>
+      <div class="hero-grid">
+        <div class="hero-card">
+          <strong>4</strong>
+          <span>roles de acceso</span>
+        </div>
+        <div class="hero-card">
+          <strong>3</strong>
+          <span>módulos principales dentro del dashboard</span>
+        </div>
+        <div class="hero-card">
+          <strong>3</strong>
+          <span>flujos centrales de solicitud: PTO, Day Off Request y Change Request</span>
+        </div>
+        <div class="hero-card">
+          <strong>1</strong>
+          <span>fuente operativa de calendario, cobertura y seguimiento</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>¿Para qué sirve ShiftTrack?</h2>
+      <p class="section-intro">
+        ShiftTrack está pensado para equipos que trabajan con turnos, cobertura operativa y necesidades constantes de visibilidad.
+        La aplicación permite consultar horarios, entender cuántas personas están cubriendo cada día, manejar ausencias, aprobar solicitudes
+        y mantener alineado al equipo con una sola fuente de información.
+      </p>
+      <div class="grid-3">
+        <div class="card">
+          <h3>Planeación de horarios</h3>
+          <p>Permite ver el calendario semanal y la vista anual, revisar turnos por persona, navegar entre semanas y años, y consultar cobertura esperada frente a cobertura real.</p>
+        </div>
+        <div class="card">
+          <h3>Gestión de ausencias y cambios</h3>
+          <p>Centraliza las solicitudes de PTO, Day Off y los cambios de turno entre personas del mismo rol, con trazabilidad, alertas y pantallas de revisión.</p>
+        </div>
+        <div class="card">
+          <h3>Administración del equipo</h3>
+          <p>Incluye creación, edición, reactivación, desactivación y limpieza de empleados, junto con periodos de horario y reglas de acceso por rol.</p>
+        </div>
+      </div>
+      <div class="chip-row">
+        <span class="chip blue">Calendario semanal</span>
+        <span class="chip blue">Vista anual</span>
+        <span class="chip green">PTO</span>
+        <span class="chip green">Day Off Request</span>
+        <span class="chip green">Change Requests</span>
+        <span class="chip gold">Coverage</span>
+        <span class="chip gold">Gestión de empleados</span>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Qué se puede hacer dentro de la app</h2>
+      <div class="grid-4">
+        <div class="card">
+          <h3>Shift Calendar</h3>
+          <ul>
+            <li>Ver turnos por persona y por día.</li>
+            <li>Aplicar filtros por fecha, empleado, rol, turno, operación y compañía.</li>
+            <li>Ver cobertura esperada, cobertura real y total de agentes.</li>
+            <li>Consultar festivos de Colombia y resaltarlos en el calendario.</li>
+            <li>Entrar a la semana desde la vista anual.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Requests</h3>
+          <ul>
+            <li>Consultar solicitudes abiertas o históricas.</li>
+            <li>Ver quién solicitó, cuándo lo solicitó y el estado de revisión.</li>
+            <li>Dar seguimiento a PTO, Day Off Request y Change Request.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Employees</h3>
+          <ul>
+            <li>Crear empleados nuevos.</li>
+            <li>Editar datos, horarios y periodos.</li>
+            <li>Desactivar o reactivar perfiles.</li>
+            <li>Hacer limpieza o purga cuando aplique.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Revisión</h3>
+          <ul>
+            <li>Revisar solicitudes de PTO.</li>
+            <li>Revisar solicitudes de Day Off.</li>
+            <li>Revisar solicitudes de Change Request.</li>
+            <li>Aprobar o rechazar con trazabilidad.</li>
+            <li>Aplicar el cambio de horario cuando corresponde.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Roles existentes</h2>
+      <p class="section-intro">
+        ShiftTrack hoy trabaja con cuatro perfiles. Cada uno tiene un alcance distinto para proteger la operación y permitir que cada usuario vea y haga solamente lo que le corresponde.
+      </p>
+      <table>
+        <thead>
+          <tr>
+            <th>Rol</th>
+            <th>Sigla</th>
+            <th>Enfoque principal</th>
+            <th>Qué puede hacer</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Employee</strong></td>
+            <td><strong>EM</strong></td>
+            <td>Consulta y solicitud personal</td>
+            <td>Ver su horario, consultar el calendario, solicitar PTO, solicitar Day Off Request, solicitar Change Request y revisar el estado de sus solicitudes.</td>
+          </tr>
+          <tr>
+            <td><strong>Team Leader</strong></td>
+            <td><strong>TL</strong></td>
+            <td>Operación con visibilidad adicional</td>
+            <td>Tiene la base del Employee, puede solicitar Day Off Request y además puede visualizar coverage en el calendario.</td>
+          </tr>
+          <tr>
+            <td><strong>Manager</strong></td>
+            <td><strong>MA</strong></td>
+            <td>Gestión operativa y revisión</td>
+            <td>Puede revisar solicitudes, gestionar usuarios según reglas del sistema, crear PTO y Day Off para sí mismo o para otros cuando aplica y trabajar con fechas pasadas si el proceso lo requiere.</td>
+          </tr>
+          <tr>
+            <td><strong>Admin</strong></td>
+            <td><strong>AD</strong></td>
+            <td>Administración completa</td>
+            <td>Tiene control total sobre usuarios, revisiones, visibilidad y configuración operativa. Puede montar PTO y Day Off a sí mismo o a cualquier persona con aprobación automática.</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="note">
+        En el calendario, las siglas del rol se muestran junto al nombre de la persona. Esto ayuda a identificar rápidamente el tipo de perfil dentro de la operación.
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Matriz rápida por rol</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Funcionalidad</th>
+            <th>Employee</th>
+            <th>Team Leader</th>
+            <th>Manager</th>
+            <th>Admin</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Ver calendario semanal</strong></td>
+            <td>Sí</td>
+            <td>Sí</td>
+            <td>Sí</td>
+            <td>Sí</td>
+          </tr>
+          <tr>
+            <td><strong>Ver coverage</strong></td>
+            <td>No</td>
+            <td>Sí</td>
+            <td>Sí</td>
+            <td>Sí</td>
+          </tr>
+          <tr>
+            <td><strong>Solicitar PTO</strong></td>
+            <td>Sí</td>
+            <td>Sí</td>
+            <td>Sí</td>
+            <td>Sí</td>
+          </tr>
+          <tr>
+            <td><strong>Solicitar Day Off</strong></td>
+            <td>Sí, solo para sí mismo</td>
+            <td>Sí, solo para sí mismo</td>
+            <td>Sí, para sí mismo y para otros</td>
+            <td>Sí, para sí mismo y para otros</td>
+          </tr>
+          <tr>
+            <td><strong>Solicitar Change Request</strong></td>
+            <td>Sí</td>
+            <td>Sí</td>
+            <td>Sí</td>
+            <td>Sí</td>
+          </tr>
+          <tr>
+            <td><strong>Solicitar PTO en fechas pasadas</strong></td>
+            <td>No</td>
+            <td>No</td>
+            <td>Sí</td>
+            <td>Sí</td>
+          </tr>
+          <tr>
+            <td><strong>Solicitar PTO a más de 60 días</strong></td>
+            <td>No</td>
+            <td>No</td>
+            <td>Sí</td>
+            <td>Sí</td>
+          </tr>
+          <tr>
+            <td><strong>Revisar PTO / Day Off / Change Request</strong></td>
+            <td>No</td>
+            <td>No</td>
+            <td>Sí</td>
+            <td>Sí</td>
+          </tr>
+          <tr>
+            <td><strong>Entrar a Employees</strong></td>
+            <td>No</td>
+            <td>No</td>
+            <td>Sí</td>
+            <td>Sí</td>
+          </tr>
+          <tr>
+            <td><strong>Crear / editar / reactivar empleados</strong></td>
+            <td>No</td>
+            <td>No</td>
+            <td>Sí</td>
+            <td>Sí</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section">
+      <h2>Flujo general de uso de la app</h2>
+      <div class="flow">
+        <div class="flow-step">
+          <div class="flow-num">1</div>
+          <div>
+            <h3>Ingreso</h3>
+            <p>La persona entra con sus credenciales o por SSO con Microsoft Entra ID. El sistema valida la sesión y carga el dashboard principal.</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">2</div>
+          <div>
+            <h3>Consulta operativa</h3>
+            <p>Desde el dashboard puede moverse entre Shift Calendar, Requests y Employees según su rol. El calendario muestra turnos, días off, PTO, coverage y festivos.</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">3</div>
+          <div>
+            <h3>Solicitud</h3>
+            <p>Puede crear una solicitud de PTO, Day Off Request o una solicitud de Change Request. El sistema valida las reglas del negocio, las restricciones por rol y el impacto de coverage antes de permitir guardarla.</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">4</div>
+          <div>
+            <h3>Revisión</h3>
+            <p>Managers o Admins revisan la solicitud en las pantallas de review. Desde ahí la aprueban o la rechazan.</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">5</div>
+          <div>
+            <h3>Aplicación en calendario</h3>
+            <p>Cuando la solicitud se aprueba, el calendario se actualiza y el cambio queda visible en las vistas correspondientes.</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num">6</div>
+          <div>
+            <h3>Seguimiento</h3>
+            <p>La persona puede volver a Requests para verificar el estado, revisar timestamps y confirmar el resultado final.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Flujo de PTO</h2>
+      <div class="grid-2">
+        <div class="card">
+          <h3>Qué hace el usuario</h3>
+          <ul>
+            <li>Selecciona el tipo de solicitud.</li>
+            <li>Indica cantidad de días.</li>
+            <li>Define fecha de inicio.</li>
+            <li>Agrega comentarios si lo desea.</li>
+            <li>Envía la solicitud para revisión.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Qué hace ShiftTrack</h3>
+          <ul>
+            <li>Valida la elegibilidad de la fecha.</li>
+            <li>Aplica reglas por rol.</li>
+            <li>Cuenta vacaciones por días hábiles de Colombia.</li>
+            <li>Marca sábados, domingos y festivos dentro del tramo sin consumir días de vacaciones.</li>
+            <li>Deja la solicitud lista para aprobación o rechazo.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="note">
+        Regla importante: en vacaciones, ShiftTrack cuenta solo días hábiles de lunes a viernes, excluyendo festivos de Colombia. Los fines de semana y festivos dentro del rango sí se marcan visualmente en el calendario, pero no descuentan días.
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Flujo de Day Off Request</h2>
+      <div class="grid-2">
+        <div class="card">
+          <h3>Qué hace el usuario</h3>
+          <ul>
+            <li>Abre el mismo popup de PTO y cambia a la pestaña Day Off Request.</li>
+            <li>Indica cantidad de días y fecha de inicio.</li>
+            <li>Agrega comentarios si lo desea.</li>
+            <li>Envía la solicitud o la monta directamente si su rol lo permite.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Qué hace ShiftTrack</h3>
+          <ul>
+            <li>Valida la jerarquía del rol antes de permitir guardar.</li>
+            <li>Rechaza el caso en que la fecha ya esté marcada como Day Off.</li>
+            <li>Usa la misma lógica de aprobación de PTO según el rol del solicitante.</li>
+            <li>Detecta si la aprobación afecta coverage y muestra alertas antes de guardar o aprobar cuando corresponde.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="note">
+        Jerarquía actual: Admin se autoaprueba los Day Off; Manager genera solicitud con aprobación de Admin; Employee y Team Leader generan solicitud para sí mismos con aprobación de Manager o Admin.
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Flujo de Change Request</h2>
+      <div class="grid-2">
+        <div class="card">
+          <h3>Qué revisa la app</h3>
+          <ul>
+            <li>Que el coworker sea del mismo rol.</li>
+            <li>Que el solicitante esté trabajando el día que quiere tomar.</li>
+            <li>Que el día off ofrecido por el solicitante coincida con un día laborado por el coworker.</li>
+            <li>Que ambas fechas sean consistentes con el intercambio.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Resultado del flujo</h3>
+          <ul>
+            <li>Se genera una solicitud formal.</li>
+            <li>Puede ser revisada por el rol autorizado.</li>
+            <li>Si se aprueba, se aplican los cambios en ambos días y en ambas personas.</li>
+            <li>El histórico queda visible en Requests y Review.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Qué se ve en Shift Calendar</h2>
+      <div class="grid-3">
+        <div class="card">
+          <h3>Vista semanal</h3>
+          <p>Muestra a cada persona en filas y los días de la semana en columnas. Desde aquí se consulta el turno, el day off, el PTO, los Day Off aprobados y el estado de coverage.</p>
+        </div>
+        <div class="card">
+          <h3>Vista anual</h3>
+          <p>Presenta todo el año, permite navegar al año anterior, al actual o al siguiente y marca los festivos de Colombia en rojo. Al hacer click en un día, se puede entrar directamente a su semana.</p>
+        </div>
+        <div class="card">
+          <h3>Filtros</h3>
+          <p>Permite filtrar por fecha, empleado, rol, turno, operación y compañía. La persona logueada permanece fija arriba para que siempre vea su propia información primero.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Qué se ve en Employees</h2>
+      <div class="grid-2">
+        <div class="card">
+          <h3>Operación del módulo</h3>
+          <ul>
+            <li>Listado de personal activo e inactivo.</li>
+            <li>Búsqueda y ordenamiento.</li>
+            <li>Creación y edición de perfiles.</li>
+            <li>Periodos de horario con vigencia.</li>
+            <li>Reactivación y desactivación.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Cuándo se usa</h3>
+          <ul>
+            <li>Ingreso de nuevas personas.</li>
+            <li>Cambios de rol, compañía u operación.</li>
+            <li>Ajustes de horarios por periodo.</li>
+            <li>Mantenimiento del roster activo.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Qué se ve en Requests y Review</h2>
+      <div class="grid-3">
+        <div class="card">
+          <h3>Requests</h3>
+          <p>Es la pantalla de seguimiento. Ahí se consultan solicitudes generadas, estados y marcas de tiempo en la hora local del usuario. Hoy separa PTO, Day Off y Swaps en pestañas independientes.</p>
+        </div>
+        <div class="card">
+          <h3>PTO Review</h3>
+          <p>Permite revisar solicitudes de tiempo libre y Day Off, aprobarlas o rechazarlas y dejar el resultado aplicado en el calendario.</p>
+        </div>
+        <div class="card">
+          <h3>Swap Review</h3>
+          <p>Permite revisar solicitudes de Change Request y, si se aprueban, ejecutar el intercambio de horario correspondiente.</p>
+        </div>
+      </div>
+      <div class="note">
+        Cuando una aprobación de PTO o Day Off afecta el coverage, ShiftTrack muestra una alerta en inglés con el día impactado, los agentes activos proyectados, el coverage proyectado y el mínimo recomendado para ese día.
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Autenticación, seguridad y sesión</h2>
+      <div class="grid-3">
+        <div class="card">
+          <h3>Ingreso</h3>
+          <p>ShiftTrack soporta login tradicional y autenticación con Microsoft Entra ID.</p>
+        </div>
+        <div class="card">
+          <h3>Sesión</h3>
+          <p>La sesión expira por inactividad. Antes del cierre automático, la app muestra una advertencia al usuario.</p>
+        </div>
+        <div class="card">
+          <h3>Protecciones</h3>
+          <p>La app trabaja con cookies de sesión, protección CSRF, revisión de permisos por rol y escaneo de seguridad sin hallazgos activos en el último análisis.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Elementos operativos adicionales</h2>
+      <div class="grid-2">
+        <div class="card">
+          <h3>Tiempo real</h3>
+          <ul>
+            <li>La app usa SignalR para refrescos silenciosos.</li>
+            <li>Los cambios de horario se reflejan sin fricción para el usuario.</li>
+            <li>Existe indicador visual de estado en vivo.</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Soporte visual y experiencia</h3>
+          <ul>
+            <li>Animaciones de transición en login y logout.</li>
+            <li>Loader de marca ShiftTrack.</li>
+            <li>Página de mantenimiento dedicada.</li>
+            <li>Componentes compartidos para botones, selects y modales.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Conclusión</h2>
+      <div class="card">
+        <p>
+          En pocas palabras, ShiftTrack reúne en un solo lugar lo que normalmente termina repartido entre mensajes, archivos,
+          validaciones manuales y consultas de último minuto. La idea de la plataforma es que el equipo pueda entrar, entender
+          rápido qué está pasando con la programación, gestionar sus solicitudes y darle seguimiento sin perder tiempo buscando
+          información en varios lados.
+        </p>
+        <p style="margin-top:14px;">
+          Desde el lado de operación, ayuda mucho porque deja más claro quién trabaja, quién está libre, cómo va la cobertura
+          y qué cambios ya fueron aprobados. Y desde el lado administrativo, permite manejar empleados, solicitudes y revisiones
+          con una estructura mucho más ordenada y visible.
+        </p>
+        <p style="margin-top:14px;">
+          Al final, lo más valioso de ShiftTrack es que vuelve la operación más clara, más trazable y más fácil de manejar
+          para todos los perfiles que participan en el día a día.
+        </p>
+      </div>
+    </section>
+
+    <div class="footer">
+      ShiftTrack · Guía general para presentación al cliente · Estado actual de la plataforma
+    </div>
+  </div>
+</body>
+</html>

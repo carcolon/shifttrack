@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ShiftTrack - Código SSO Entra ID</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: #f5f8fc;
+      color: #1f2a3d;
+    }
+    .page {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 32px 24px 56px;
+    }
+    h1, h2, h3 {
+      margin: 0 0 12px;
+      color: #183b63;
+    }
+    h1 {
+      font-size: 30px;
+      margin-bottom: 8px;
+    }
+    h2 {
+      font-size: 24px;
+      margin-top: 30px;
+    }
+    p {
+      margin: 0 0 18px;
+      line-height: 1.55;
+      color: #4a607d;
+    }
+    .section {
+      background: #fff;
+      border: 1px solid #dbe5f0;
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(17, 46, 77, 0.05);
+      margin-top: 18px;
+    }
+    .snippet {
+      padding: 16px 0 2px;
+      border-top: 1px solid #edf2f7;
+    }
+    .snippet:first-child {
+      border-top: none;
+      padding-top: 0;
+    }
+    .path {
+      display: inline-block;
+      margin-bottom: 10px;
+      padding: 7px 11px;
+      border-radius: 10px;
+      background: #eef5fc;
+      color: #1c5e98;
+      font-family: Consolas, "Courier New", monospace;
+      font-size: 13px;
+      word-break: break-all;
+    }
+    pre {
+      margin: 0 0 18px;
+      padding: 14px 16px;
+      overflow-x: auto;
+      border-radius: 14px;
+      background: #0f1e31;
+      color: #e9f3ff;
+      font-size: 13px;
+      line-height: 1.55;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
+    }
+    code {
+      font-family: Consolas, "Courier New", monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>ShiftTrack - Código SSO con Microsoft Entra ID</h1>
+
+    <h2>Frontend</h2>
+    <div class="section">
+      <div class="snippet">
+        <div class="path">shifttrack-web/src/pages/LoginPage.tsx</div>
+        <pre><code>import { emailRegex, ENTRA_CLIENT_ID, ENTRA_TENANT_ID, BEARER_FALLBACK_ENABLED } from '../lib/constants';
+
+const ENTRA_STATE_KEY = 'shifttrack-entra-state';
+const ENTRA_VERIFIER_KEY = 'shifttrack-entra-code-verifier';
+
+const handleEntraLogin = async () =&gt; {
+  if (!canUseEntra) {
+    setModalMessage('Microsoft Entra login is not configured for this environment.');
+    return;
+  }
+
+  const state = crypto.randomUUID();
+  const codeVerifier = generateCodeVerifier();
+  const codeChallenge = await buildCodeChallenge(codeVerifier);
+  setBrowserCookie(ENTRA_STATE_KEY, state, { maxAgeSeconds: 900 });
+  setBrowserCookie(ENTRA_VERIFIER_KEY, codeVerifier, { maxAgeSeconds: 900 });
+
+  const redirectUri = `${window.location.origin}/entra-callback`;
+  const params = new URLSearchParams({
+    client_id: ENTRA_CLIENT_ID,
+    response_type: 'code',
+    redirect_uri: redirectUri,
+    response_mode: 'query',
+    scope: 'openid profile email',
+    state,
+    code_challenge: codeChallenge,
+    code_challenge_method: 'S256',
+  });
+
+  window.location.assign(
+    `https://login.microsoftonline.com/${ENTRA_TENANT_ID}/oauth2/v2.0/authorize?${params.toString()}`
+  );
+};</code></pre>
+      </div>
+
+      <div class="snippet">
+        <div class="path">shifttrack-web/src/pages/EntraCallbackPage.tsx</div>
+        <pre><code>const ENTRA_STATE_KEY = 'shifttrack-entra-state';
+const ENTRA_VERIFIER_KEY = 'shifttrack-entra-code-verifier';
+
+const code = query.get('code');
+const state = query.get('state');
+const expectedState = getBrowserCookie(ENTRA_STATE_KEY);
+const codeVerifier = getBrowserCookie(ENTRA_VERIFIER_KEY);
+
+if (!code || !state || !expectedState || state !== expectedState || !codeVerifier) {
+  setMessage('Microsoft login response is invalid. Please try again.');
+  return;
+}
+
+removeBrowserCookie(ENTRA_STATE_KEY);
+removeBrowserCookie(ENTRA_VERIFIER_KEY);
+
+const res = await apiFetch('/auth/entra-code-login', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    code,
+    codeVerifier,
+    redirectUri: `${window.location.origin}/entra-callback`,
+  }),
+});</code></pre>
+      </div>
+
+      <div class="snippet">
+        <div class="path">shifttrack-web/src/lib/constants.ts</div>
+        <pre><code>export const ENTRA_TENANT_ID = import.meta.env.VITE_ENTRA_TENANT_ID ?? '';
+export const ENTRA_CLIENT_ID = import.meta.env.VITE_ENTRA_CLIENT_ID ?? '';</code></pre>
+      </div>
+
+      <div class="snippet">
+        <div class="path">shifttrack-web/src/lib/browserState.ts</div>
+        <pre><code>export const setBrowserCookie = (name: string, value: string, options?: CookieOptions) =&gt; {
+  if (typeof document === 'undefined') return;
+  document.cookie = buildCookie(name, value, options);
+};
+
+export const getBrowserCookie = (name: string) =&gt; {
+  if (typeof document === 'undefined') return '';
+  const prefix = `${encodeURIComponent(name)}=`;
+  const entry = document.cookie
+    .split(';')
+    .map((part) =&gt; part.trim())
+    .find((part) =&gt; part.startsWith(prefix));
+  if (!entry) return '';
+  return decodeURIComponent(entry.slice(prefix.length));
+};</code></pre>
+      </div>
+    </div>
+
+    <h2>Backend</h2>
+    <div class="section">
+      <div class="snippet">
+        <div class="path">shifttrack-api/ShiftTrack.Api/AuthEndpoints.cs</div>
+        <pre><code>app.MapPost("/auth/entra-login", async (HttpContext httpContext, EntraLoginRequest request, IAuthService auth, IUserRepository users) =&gt;
+{
+    if (string.IsNullOrWhiteSpace(request.IdToken))
+    {
+        return Results.BadRequest(new ErrorResponse("Entra token is required."));
+    }
+
+    principal = await ValidateEntraIdTokenAsync(request.IdToken, entraClientId, entraTenantId, entraConfigManager);
+});
+
+app.MapPost("/auth/entra-code-login", async (
+    HttpContext httpContext,
+    EntraCodeLoginRequest request,
+    IAuthService auth,
+    IUserRepository users,
+    IHttpClientFactory httpClientFactory) =&gt;
+{
+    var exchange = await ExchangeEntraCodeForIdTokenAsync(
+        httpClient,
+        entraTenantId,
+        entraClientId,
+        entraClientSecret,
+        request.Code,
+        request.CodeVerifier,
+        request.RedirectUri,
+        httpContext.RequestAborted);
+});</code></pre>
+      </div>
+
+      <div class="snippet">
+        <div class="path">shifttrack-api/ShiftTrack.Api/AuthHelpers.cs</div>
+        <pre><code>internal static async Task&lt;EntraCodeExchangeResult&gt; ExchangeEntraCodeForIdTokenAsync(
+    HttpClient httpClient,
+    string tenantId,
+    string clientId,
+    string clientSecret,
+    string code,
+    string codeVerifier,
+    string redirectUri,
+    CancellationToken cancellationToken)
+{
+    var endpoint = $"https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token";
+}
+
+internal static async Task&lt;ClaimsPrincipal&gt; ValidateEntraIdTokenAsync(
+    string idToken,
+    string clientId,
+    string tenantId,
+    ConfigurationManager&lt;OpenIdConnectConfiguration&gt; configManager)
+{
+    var validIssuerV2 = $"https://login.microsoftonline.com/{tenantId}/v2.0";
+    var validIssuerSts = $"https://sts.windows.net/{tenantId}/";
+}</code></pre>
+      </div>
+
+      <div class="snippet">
+        <div class="path">shifttrack-api/ShiftTrack.Api/Program.cs</div>
+        <pre><code>var entraTenantId = builder.Configuration["AzureAd:TenantId"]?.Trim() ?? string.Empty;
+var entraClientId = builder.Configuration["AzureAd:ClientId"]?.Trim() ?? string.Empty;
+var entraClientSecret = builder.Configuration["AzureAd:ClientSecret"]?.Trim() ?? string.Empty;
+
+ConfigurationManager&lt;OpenIdConnectConfiguration&gt;? entraConfigManager = null;
+if (!string.IsNullOrWhiteSpace(entraTenantId))
+{
+    var metadataAddress = $"https://login.microsoftonline.com/{entraTenantId}/v2.0/.well-known/openid-configuration";
+    entraConfigManager = new ConfigurationManager&lt;OpenIdConnectConfiguration&gt;(
+        metadataAddress,
+        new OpenIdConnectConfigurationRetriever(),
+        new HttpDocumentRetriever { RequireHttps = true });
+}</code></pre>
+      </div>
+
+      <div class="snippet">
+        <div class="path">shifttrack-api/ShiftTrack.Api/ApiContracts.cs</div>
+        <pre><code>public record EntraLoginRequest(string IdToken);
+public record EntraCodeLoginRequest(string Code, string CodeVerifier, string RedirectUri);</code></pre>
+      </div>
+
+      <div class="snippet">
+        <div class="path">shifttrack-api/ShiftTrack.Application/Services/AuthService.cs</div>
+        <pre><code>public async Task&lt;AuthResult&gt; LoginWithEntraAsync(Guid objectId, string email, string? displayName)
+{
+    var userByOid = await _users.GetByObjectIdAsync(objectId);
+    if (userByOid is not null)
+    {
+        if (!userByOid.IsActive)
+        {
+            return AuthResult.Fail("This account is inactive.");
+        }
+    }
+}</code></pre>
+      </div>
+
+      <div class="snippet">
+        <div class="path">shifttrack-api/ShiftTrack.Api/appsettings.json</div>
+        <pre><code>"AzureAd": {
+  "Instance": "https://login.microsoftonline.com/",
+  "ClientId": "",
+  "TenantId": "",
+  "Audience": ""
+}</code></pre>
+      </div>
+
+      <div class="snippet">
+        <div class="path">shifttrack-api/ShiftTrack.Api/appsettings.Development.json</div>
+        <pre><code>"AzureAd": {
+  "Instance": "https://login.microsoftonline.com/",
+  "ClientId": "",
+  "TenantId": "",
+  "Audience": ""
+}</code></pre>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

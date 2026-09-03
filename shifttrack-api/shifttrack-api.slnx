@@ -1,0 +1,9 @@
+<Solution>
+  <Project Path="ShiftTrack.Application/ShiftTrack.Application.csproj" />
+  <Project Path="ShiftTrack.Domain/ShiftTrack.Domain.csproj" />
+  <Project Path="ShiftTrack.Infrastructure/ShiftTrack.Infrastructure.csproj" />
+  <Project Path="ShiftTrack.Api/ShiftTrack.Api.csproj" />
+  <Project Path="tests/Unit/ShiftTrack.Api.Tests/ShiftTrack.Api.Tests.csproj" />
+  <Project Path="tests/Integration/ShiftTrack.Api.IntegrationTests/ShiftTrack.Api.IntegrationTests.csproj" />
+  <Project Path="tests/Acceptance/ShiftTrack.Api.AcceptanceTests/ShiftTrack.Api.AcceptanceTests.csproj" />
+</Solution>

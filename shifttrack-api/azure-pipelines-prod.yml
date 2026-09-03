@@ -1,0 +1,490 @@
+trigger:
+  - prod
+
+pool:
+  vmImage: "windows-latest"
+
+variables:
+  - group: shifttrack-api-prod
+  - name: buildConfiguration
+    value: "Release"
+
+jobs:
+  - job: BuildAndPublish
+    displayName: "Build & Publish"
+    steps:
+      - task: UseDotNet@2
+        displayName: "Use .NET SDK 8.x"
+        inputs:
+          packageType: "sdk"
+          version: "8.x"
+          installationPath: "$(Agent.ToolsDirectory)/dotnet"
+
+      - task: DotNetCoreCLI@2
+        displayName: "Restore"
+        inputs:
+          command: "restore"
+          projects: "ShiftTrack.Api/ShiftTrack.Api.csproj"
+
+      - task: DotNetCoreCLI@2
+        displayName: "Build"
+        inputs:
+          command: "build"
+          projects: "ShiftTrack.Api/ShiftTrack.Api.csproj"
+          arguments: "--configuration $(buildConfiguration)"
+
+      - task: UsePythonVersion@0
+        displayName: "Use Python 3.x"
+        inputs:
+          versionSpec: "3.x"
+
+      - script: |
+          python -m pip install --upgrade pip
+          pip install semgrep
+        displayName: "Install Semgrep"
+
+      - script: |
+          dotnet list ShiftTrack.Api/ShiftTrack.Api.csproj package --vulnerable --include-transitive --format json > $(Build.ArtifactStagingDirectory)/dotnet-vulnerable-api.json
+        displayName: "Dependency scan (.NET vulnerable packages JSON)"
+
+      - script: |
+          semgrep --config p/owasp-top-ten ShiftTrack.Api ShiftTrack.Application ShiftTrack.Infrastructure --json --output $(Build.ArtifactStagingDirectory)/semgrep-api.json
+        displayName: "SAST scan (Semgrep OWASP)"
+
+      - task: PowerShell@2
+        displayName: "Security gate (api)"
+        inputs:
+          targetType: "inline"
+          pwsh: true
+          script: |
+            $semgrepPath = "$(Build.ArtifactStagingDirectory)/semgrep-api.json"
+            $dotnetPath = "$(Build.ArtifactStagingDirectory)/dotnet-vulnerable-api.json"
+
+            $sem = Get-Content $semgrepPath -Raw | ConvertFrom-Json
+            $semErrors = @($sem.results | Where-Object { $_.extra.severity -eq "ERROR" }).Count
+
+            $dotnetJson = Get-Content $dotnetPath -Raw
+            $highOrCritical = [regex]::Matches($dotnetJson, '"severity"\s*:\s*"(?i)(high|critical)"').Count
+
+            Write-Host "Semgrep ERROR findings: $semErrors"
+            Write-Host ".NET high/critical vulnerabilities: $highOrCritical"
+
+            if ($semErrors -gt 0 -or $highOrCritical -gt 0) {
+              throw "Security gate failed. Semgrep ERROR=$semErrors, dotnet high/critical=$highOrCritical"
+            }
+
+      - task: DotNetCoreCLI@2
+        displayName: "Publish"
+        inputs:
+          command: "publish"
+          publishWebProjects: false
+          projects: "ShiftTrack.Api/ShiftTrack.Api.csproj"
+          arguments: "--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)"
+          zipAfterPublish: true
+
+      - task: PowerShell@2
+        displayName: "Verify API package layout"
+        inputs:
+          targetType: "inline"
+          pwsh: true
+          script: |
+            $packages = @(Get-ChildItem -Path "$(Build.ArtifactStagingDirectory)" -Filter "*.zip" -File)
+            if ($packages.Count -ne 1) {
+              $packages | ForEach-Object { Write-Host "Found ZIP: $($_.FullName)" }
+              throw "Expected exactly one API ZIP package, found $($packages.Count)."
+            }
+
+            $package = $packages[0].FullName
+            Write-Host "Package: $package"
+            Add-Type -AssemblyName System.IO.Compression.FileSystem
+            $zip = [System.IO.Compression.ZipFile]::OpenRead($package)
+            try {
+              $entryNames = @($zip.Entries | Select-Object -ExpandProperty FullName)
+              foreach ($required in @("web.config", "ShiftTrack.Api.dll", "ShiftTrack.Api.runtimeconfig.json")) {
+                if ($entryNames -notcontains $required) {
+                  throw "Invalid API package layout: missing root entry '$required'."
+                }
+              }
+            }
+            finally {
+              $zip.Dispose()
+            }
+
+      - task: PublishPipelineArtifact@1
+        displayName: "Publish artifact"
+        inputs:
+          targetPath: "$(Build.ArtifactStagingDirectory)"
+          artifactName: "drop"
+
+  - job: Deploy
+    displayName: "Deploy to Azure Web App (prod)"
+    dependsOn: BuildAndPublish
+    steps:
+      - task: DownloadPipelineArtifact@2
+        displayName: "Download artifact"
+        inputs:
+          buildType: "current"
+          artifactName: "drop"
+          targetPath: "$(Pipeline.Workspace)/drop"
+
+      - task: UseDotNet@2
+        displayName: "Use .NET SDK 8.x"
+        inputs:
+          packageType: "sdk"
+          version: "8.x"
+          installationPath: "$(Agent.ToolsDirectory)/dotnet"
+
+      - task: AzureCLI@2
+        displayName: "Apply EF database migrations (prod)"
+        inputs:
+          azureSubscription: "$(azureServiceConnection)"
+          scriptType: "pscore"
+          scriptLocation: "inlineScript"
+          inlineScript: |
+            $connectionString = az keyvault secret show `
+              --vault-name "kv-shifttrack-prod" `
+              --name "ConnectionStrings--Default" `
+              --query value `
+              -o tsv
+
+            if ([string]::IsNullOrWhiteSpace($connectionString)) {
+              throw "Could not resolve prod database connection string from Key Vault."
+            }
+
+            $packages = @(Get-ChildItem -Path "$(Pipeline.Workspace)/drop" -Filter "*.zip" -Recurse -File)
+            if ($packages.Count -ne 1) {
+              $packages | ForEach-Object { Write-Host "Found ZIP: $($_.FullName)" }
+              throw "Expected exactly one API ZIP package before migrations, found $($packages.Count)."
+            }
+
+            $migrationRoot = Join-Path "$(Agent.TempDirectory)" "shifttrack-api-migrations"
+            if (Test-Path -LiteralPath $migrationRoot) {
+              Remove-Item -LiteralPath $migrationRoot -Recurse -Force
+            }
+            New-Item -ItemType Directory -Path $migrationRoot | Out-Null
+            Expand-Archive -Path $packages[0].FullName -DestinationPath $migrationRoot -Force
+
+            $env:ConnectionStrings__Default = $connectionString
+            dotnet (Join-Path $migrationRoot "ShiftTrack.Api.dll") --migrate-database
+
+      - task: AzureCLI@2
+        displayName: "Finalize App Service deployment"
+        inputs:
+          azureSubscription: "$(azureServiceConnection)"
+          scriptType: "pscore"
+          scriptLocation: "inlineScript"
+          inlineScript: |
+            $resourceGroup = az webapp list --query "[?name=='$(webAppName)'].resourceGroup | [0]" -o tsv
+            if ([string]::IsNullOrWhiteSpace($resourceGroup)) {
+              throw "Could not resolve resource group for $(webAppName)."
+            }
+
+            Write-Host "Configuring Windows App Service stack and deployment mode"
+            $siteConfigPath = Join-Path "$(Agent.TempDirectory)" "shifttrack-prod-site-config.json"
+            @{
+              "use32BitWorkerProcess" = $false
+              "alwaysOn" = $true
+              "webSocketsEnabled" = $true
+            } | ConvertTo-Json -Depth 3 | Set-Content -Path $siteConfigPath -Encoding utf8
+
+            az webapp config set `
+              --name "$(webAppName)" `
+              --resource-group $resourceGroup `
+              --always-on true `
+              --use-32bit-worker-process false `
+              --generic-configurations "@$siteConfigPath"
+
+            az webapp update `
+              --name "$(webAppName)" `
+              --resource-group $resourceGroup `
+              --client-affinity-enabled true
+
+            az webapp log config `
+              --name "$(webAppName)" `
+              --resource-group $resourceGroup `
+              --application-logging filesystem `
+              --web-server-logging filesystem `
+              --detailed-error-messages true `
+              --failed-request-tracing true `
+              --level information
+
+            $plainSettingsPath = Join-Path "$(Agent.TempDirectory)" "shifttrack-prod-app-settings.json"
+            @{
+              "ASPNETCORE_ENVIRONMENT" = "$(ASPNETCORE_ENVIRONMENT)"
+              "FrontendBaseUrl" = "$(FrontendBaseUrl)"
+              "AllowedOrigins__0" = "$(AllowedOrigins__0)"
+              "AzureAd__Audience" = "$(AzureAd__Audience)"
+              "AzureAd__ClientId" = "$(AzureAd__ClientId)"
+              "AzureAd__TenantId" = "$(AzureAd__TenantId)"
+              "Jwt__Issuer" = "$(Jwt__Issuer)"
+              "Jwt__Audience" = "$(Jwt__Audience)"
+              "EmailSettings__Mode" = "$(EmailSettings__Mode)"
+              "EmailSettings__Endpoint" = "$(EmailSettings__Endpoint)"
+              "EmailSettings__Email" = "$(EmailSettings__Email)"
+              "EmailSettings__DisplayName" = "$(EmailSettings__DisplayName)"
+              "SeedAdmin__Email" = "$(SeedAdmin__Email)"
+              "SeedAdmin__ObjectId" = "$(SeedAdmin__ObjectId)"
+              "HiddenAdmins__Emails" = "sara.puerta@solvoglobal.com,carlos.colon@solvoglobal.com"
+              "Swagger__Enabled" = "false"
+              "DatabaseMigrations__RunOnStartup" = "false"
+              "SCM_DO_BUILD_DURING_DEPLOYMENT" = "false"
+              "WEBSITE_ENABLE_SYNC_UPDATE_SITE" = "true"
+              "WEBSITE_RUN_FROM_PACKAGE" = "1"
+            } | ConvertTo-Json -Depth 3 | Set-Content -Path $plainSettingsPath -Encoding utf8
+
+            az webapp config appsettings set `
+              --name "$(webAppName)" `
+              --resource-group $resourceGroup `
+              --settings "@$plainSettingsPath"
+
+            Write-Host "Using run-from-package so App Service mounts the exact ZIP atomically"
+
+            Write-Host "Target App Service:"
+            az webapp show `
+              --name "$(webAppName)" `
+              --resource-group $resourceGroup `
+              --query "{name:name, resourceGroup:resourceGroup, kind:kind, reserved:reserved, state:state, defaultHostName:defaultHostName, linuxFxVersion:siteConfig.linuxFxVersion, windowsFxVersion:siteConfig.windowsFxVersion}" `
+              -o json
+
+            $packages = @(Get-ChildItem -Path "$(Pipeline.Workspace)/drop" -Filter "*.zip" -Recurse -File)
+            if ($packages.Count -ne 1) {
+              $packages | ForEach-Object { Write-Host "Found ZIP: $($_.FullName)" }
+              throw "Expected exactly one API ZIP package before deploy, found $($packages.Count)."
+            }
+
+            $package = $packages[0].FullName
+            Write-Host "Deploying exact API package with Kudu zip deploy: $package"
+            az webapp deployment source config-zip `
+              --name "$(webAppName)" `
+              --resource-group $resourceGroup `
+              --src $package `
+              --timeout 300
+
+            Write-Host "Ensuring App Service managed identity can resolve Key Vault references"
+            $principalId = az webapp identity assign `
+              --name "$(webAppName)" `
+              --resource-group $resourceGroup `
+              --query principalId `
+              -o tsv
+            if ([string]::IsNullOrWhiteSpace($principalId)) {
+              throw "Could not resolve managed identity principalId for $(webAppName)."
+            }
+
+            az webapp update `
+              --name "$(webAppName)" `
+              --resource-group $resourceGroup `
+              --set keyVaultReferenceIdentity=SystemAssigned | Out-Null
+
+            $keyVaultName = "kv-shifttrack-prod"
+            $keyVault = az keyvault show --name $keyVaultName -o json | ConvertFrom-Json
+            $keyVaultId = $keyVault.id
+            $enableRbacAuthorization = [bool]$keyVault.properties.enableRbacAuthorization
+            if ($enableRbacAuthorization) {
+              $existingAssignment = az role assignment list `
+                --assignee $principalId `
+                --role "Key Vault Secrets User" `
+                --scope $keyVaultId `
+                --query "[0].id" `
+                -o tsv
+
+              if ([string]::IsNullOrWhiteSpace($existingAssignment)) {
+                az role assignment create `
+                  --assignee-object-id $principalId `
+                  --assignee-principal-type ServicePrincipal `
+                  --role "Key Vault Secrets User" `
+                  --scope $keyVaultId | Out-Null
+              }
+            }
+            else {
+              az keyvault set-policy `
+                --name $keyVaultName `
+                --object-id $principalId `
+                --secret-permissions get list | Out-Null
+            }
+
+            Write-Host "Configuring Key Vault references on $(webAppName) in $resourceGroup"
+            $kvSettingsPath = Join-Path "$(Agent.TempDirectory)" "shifttrack-prod-kv-settings.json"
+            @{
+              "ConnectionStrings__Default" = "@Microsoft.KeyVault(VaultName=kv-shifttrack-prod;SecretName=ConnectionStrings--Default)"
+              "AzureAd__ClientSecret" = "@Microsoft.KeyVault(VaultName=kv-shifttrack-prod;SecretName=AzureAd--ClientSecret)"
+              "EmailSettings__AccessKey" = "@Microsoft.KeyVault(VaultName=kv-shifttrack-prod;SecretName=EmailSettings--AccessKey)"
+              "Jwt__SigningKey" = "@Microsoft.KeyVault(VaultName=kv-shifttrack-prod;SecretName=Jwt--SigningKey)"
+            } | ConvertTo-Json -Depth 3 | Set-Content -Path $kvSettingsPath -Encoding utf8
+
+            az webapp config appsettings set `
+              --name "$(webAppName)" `
+              --resource-group $resourceGroup `
+              --settings "@$kvSettingsPath"
+
+            az webapp config appsettings delete `
+              --name "$(webAppName)" `
+              --resource-group $resourceGroup `
+              --setting-names KeyVault__VaultUri
+
+            $subscriptionId = az account show --query id -o tsv
+            $configReferencesUri = "https://management.azure.com/subscriptions/$subscriptionId/resourceGroups/$resourceGroup/providers/Microsoft.Web/sites/$(webAppName)/config/configreferences/appsettings?api-version=2022-03-01"
+            $refreshReferencesUri = "https://management.azure.com/subscriptions/$subscriptionId/resourceGroups/$resourceGroup/providers/Microsoft.Web/sites/$(webAppName)/config/configreferences/appsettings/refresh?api-version=2022-03-01"
+
+            try {
+              az rest --method post --uri $refreshReferencesUri | Out-Null
+            }
+            catch {
+              Write-Host "Key Vault reference refresh request failed, continuing with status polling: $($_.Exception.Message)"
+            }
+
+            Write-Host "Validating Key Vault reference resolution"
+            $unresolvedReferences = @()
+            for ($i = 1; $i -le 24; $i++) {
+              $referenceStatus = az rest --method get --uri $configReferencesUri -o json | ConvertFrom-Json
+              $unresolvedReferences = @($referenceStatus.value | Where-Object { $_.properties.status -ne "Resolved" })
+
+              if ($unresolvedReferences.Count -eq 0) {
+                Write-Host "All Key Vault references are resolved."
+                break
+              }
+
+              $summary = $unresolvedReferences |
+                ForEach-Object { "$($_.properties.configReference): $($_.properties.status) $($_.properties.details)" }
+              Write-Host "Key Vault references not ready on attempt ${i}: $($summary -join '; ')"
+              Start-Sleep -Seconds 10
+            }
+
+            if ($unresolvedReferences.Count -gt 0) {
+              $summary = $unresolvedReferences |
+                ForEach-Object { "$($_.properties.configReference): $($_.properties.status) $($_.properties.details)" }
+              throw "One or more Key Vault references could not be resolved: $($summary -join '; ')"
+            }
+
+            az webapp restart --name "$(webAppName)" --resource-group $resourceGroup
+
+            $defaultHostName = az webapp show `
+              --name "$(webAppName)" `
+              --resource-group $resourceGroup `
+              --query defaultHostName `
+              -o tsv
+
+            $healthUrl = "https://$defaultHostName/healthz"
+            Write-Host "Verifying deployed API route: $healthUrl"
+            $lastStatus = $null
+            for ($i = 1; $i -le 12; $i++) {
+              try {
+                Invoke-WebRequest -Uri $healthUrl -Method Get -UseBasicParsing -TimeoutSec 20 | Out-Null
+                $lastStatus = 200
+              }
+              catch {
+                $lastStatus = $_.Exception.Response.StatusCode.value__
+              }
+
+              if ($lastStatus -eq 200) {
+                Write-Host "API health endpoint is available."
+                break
+              }
+
+              Write-Host "Attempt $i returned $lastStatus. Waiting for app startup..."
+              Start-Sleep -Seconds 10
+            }
+
+            if ($lastStatus -ne 200) {
+              Write-Host "Health check failed. Dumping App Service diagnostics..."
+
+              Write-Host "App Service runtime state:"
+              az webapp show `
+                --name "$(webAppName)" `
+                --resource-group $resourceGroup `
+                --query "{state:state, availabilityState:availabilityState, enabled:enabled, hostNamesDisabled:hostNamesDisabled, defaultHostName:defaultHostName, keyVaultReferenceIdentity:keyVaultReferenceIdentity, lastModifiedTimeUtc:lastModifiedTimeUtc}" `
+                -o json
+
+              Write-Host "App Service log configuration:"
+              az webapp log show `
+                --name "$(webAppName)" `
+                --resource-group $resourceGroup `
+                -o json
+
+              try {
+                Write-Host "Azure deployment logs:"
+                az webapp log deployment show `
+                  --name "$(webAppName)" `
+                  --resource-group $resourceGroup `
+                  -o json
+              }
+              catch {
+                Write-Host "Unable to read Azure deployment logs: $($_.Exception.Message)"
+              }
+
+              try {
+                $logZip = Join-Path "$(Agent.TempDirectory)" "appservice-logs.zip"
+                $logExtract = Join-Path "$(Agent.TempDirectory)" "appservice-logs"
+                if (Test-Path -LiteralPath $logZip) {
+                  Remove-Item -LiteralPath $logZip -Force
+                }
+                if (Test-Path -LiteralPath $logExtract) {
+                  Remove-Item -LiteralPath $logExtract -Recurse -Force
+                }
+
+                az webapp log download `
+                  --name "$(webAppName)" `
+                  --resource-group $resourceGroup `
+                  --log-file $logZip | Out-Null
+
+                Expand-Archive -Path $logZip -DestinationPath $logExtract -Force
+                Write-Host "Downloaded App Service log files:"
+                Get-ChildItem -Path $logExtract -Recurse -File |
+                  Select-Object -ExpandProperty FullName
+
+                $interestingLogs = @(Get-ChildItem -Path $logExtract -Recurse -File |
+                  Where-Object { $_.Name -match 'stdout|eventlog|application|errors|trace|deploy|log' } |
+                  Sort-Object LastWriteTime -Descending |
+                  Select-Object -First 10)
+
+                foreach ($log in $interestingLogs) {
+                  Write-Host "==== $($log.FullName) ===="
+                  Get-Content -LiteralPath $log.FullName -Tail 200 -ErrorAction Continue
+                }
+              }
+              catch {
+                Write-Host "Unable to download/read App Service logs: $($_.Exception.Message)"
+              }
+
+              Write-Host "Attempting Kudu diagnostics as fallback..."
+              $publishing = az webapp deployment list-publishing-credentials `
+                --name "$(webAppName)" `
+                --resource-group $resourceGroup `
+                -o json | ConvertFrom-Json
+              $pair = "$($publishing.publishingUserName):$($publishing.publishingPassword)"
+              $basic = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes($pair))
+              $headers = @{ Authorization = "Basic $basic" }
+              $scmBase = $publishing.scmUri
+              if ([string]::IsNullOrWhiteSpace($scmBase)) {
+                $scmHost = $defaultHostName -replace '^(.*?)\.(.*azurewebsites\.net)$', '$1.scm.$2'
+                $scmBase = "https://$scmHost"
+              }
+              $scmBase = $scmBase.TrimEnd("/")
+
+              try {
+                Write-Host "Kudu /site/wwwroot listing:"
+                Invoke-RestMethod -Uri "$scmBase/api/vfs/site/wwwroot/" -Headers $headers -Method Get -TimeoutSec 30 |
+                  ConvertTo-Json -Depth 5
+              }
+              catch {
+                Write-Host "Unable to list wwwroot: $($_.Exception.Message)"
+              }
+
+              try {
+                Write-Host "Kudu web.config:"
+                Invoke-RestMethod -Uri "$scmBase/api/vfs/site/wwwroot/web.config" -Headers $headers -Method Get -TimeoutSec 30
+              }
+              catch {
+                Write-Host "Unable to read web.config: $($_.Exception.Message)"
+              }
+
+              try {
+                Write-Host "Kudu latest deployment log:"
+                Invoke-RestMethod -Uri "$scmBase/api/deployments/latest/log" -Headers $headers -Method Get -TimeoutSec 30 |
+                  ConvertTo-Json -Depth 5
+              }
+              catch {
+                Write-Host "Unable to read deployment log: $($_.Exception.Message)"
+              }
+
+              throw "Post-deploy route check failed. Expected /healthz to return 200, got $lastStatus."
+            }

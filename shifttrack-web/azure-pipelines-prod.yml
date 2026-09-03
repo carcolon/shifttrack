@@ -1,0 +1,78 @@
+trigger:
+  - prod
+
+pool:
+  vmImage: "ubuntu-latest"
+
+variables:
+  - group: shifttrack-web-prod
+
+steps:
+  - task: NodeTool@0
+    displayName: "Use Node 20"
+    inputs:
+      versionSpec: "20.x"
+
+  - script: |
+      npm ci
+    displayName: "Install dependencies"
+
+  - task: UsePythonVersion@0
+    displayName: "Use Python 3.x"
+    inputs:
+      versionSpec: "3.x"
+
+  - script: |
+      python -m pip install --upgrade pip
+      pip install semgrep
+    displayName: "Install Semgrep"
+
+  - script: |
+      npm audit --audit-level=high --json > $(Build.ArtifactStagingDirectory)/npm-audit-web.json || true
+    displayName: "Dependency scan (npm audit)"
+
+  - script: |
+      semgrep --config p/owasp-top-ten src --json --output $(Build.ArtifactStagingDirectory)/semgrep-web.json
+    displayName: "SAST scan (Semgrep OWASP)"
+
+  - task: PowerShell@2
+    displayName: "Security gate (web)"
+    inputs:
+      targetType: "inline"
+      pwsh: true
+      script: |
+        $semgrepPath = "$(Build.ArtifactStagingDirectory)/semgrep-web.json"
+        $auditPath = "$(Build.ArtifactStagingDirectory)/npm-audit-web.json"
+
+        $sem = Get-Content $semgrepPath -Raw | ConvertFrom-Json
+        $semErrors = @($sem.results | Where-Object { $_.extra.severity -eq "ERROR" }).Count
+
+        $audit = Get-Content $auditPath -Raw | ConvertFrom-Json
+        $high = [int]$audit.metadata.vulnerabilities.high
+        $critical = [int]$audit.metadata.vulnerabilities.critical
+
+        Write-Host "Semgrep ERROR findings: $semErrors"
+        Write-Host "npm vulnerabilities => high: $high, critical: $critical"
+
+        if ($semErrors -gt 0 -or $high -gt 0 -or $critical -gt 0) {
+          throw "Security gate failed. Semgrep ERROR=$semErrors, npm high=$high, critical=$critical"
+        }
+
+  - script: npm run build
+    displayName: "Build"
+    env:
+      VITE_API_BASE: $(VITE_API_BASE)
+      VITE_ENTRA_TENANT_ID: $(VITE_ENTRA_TENANT_ID)
+      VITE_ENTRA_CLIENT_ID: $(VITE_ENTRA_CLIENT_ID)
+      VITE_ENABLE_BEARER_FALLBACK: $(VITE_ENABLE_BEARER_FALLBACK)
+      VITE_MAINTENANCE_MODE: $(VITE_MAINTENANCE_MODE)
+      VITE_MAINTENANCE_MESSAGE: $(VITE_MAINTENANCE_MESSAGE)
+      VITE_ENABLE_TRACKY: $(VITE_ENABLE_TRACKY)
+
+  - task: AzureStaticWebApp@0
+    displayName: "Deploy to Azure Static Web App (prod)"
+    inputs:
+      azure_static_web_apps_api_token: $(AZURE_STATIC_WEB_APPS_API_TOKEN)
+      app_location: "/"
+      api_location: ""
+      output_location: "dist"

@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ShiftTrack | Guia tecnica completa</title>
+  <style>
+    :root { --bg:#edf5ff; --panel:#ffffff; --soft:#f7fbff; --line:#d7e5fb; --text:#193a64; --muted:#5e7a9d; --blue:#2f87d7; --deep:#164e8f; --shadow:0 18px 54px rgba(22,61,110,.12); }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:"Segoe UI",Arial,sans-serif; color:var(--text); line-height:1.55; background:radial-gradient(circle at top left,rgba(86,180,255,.2),transparent 28%),radial-gradient(circle at top right,rgba(70,148,255,.16),transparent 24%),linear-gradient(180deg,#f9fbff 0%,var(--bg) 100%); }
+    .page { width:min(1460px,calc(100% - 40px)); margin:24px auto 40px; }
+    .hero,.section,.card,.sub { background:rgba(255,255,255,.96); border:1px solid var(--line); border-radius:26px; box-shadow:var(--shadow); }
+    .hero { padding:34px 36px; background:linear-gradient(135deg,rgba(20,77,143,.96),rgba(43,131,211,.94)),#164e8f; color:#fff; }
+    .eyebrow { text-transform:uppercase; letter-spacing:.22em; font-size:12px; font-weight:700; opacity:.82; margin-bottom:12px; }
+    h1 { margin:0 0 12px; font-size:40px; line-height:1.08; }
+    h2 { margin:0 0 16px; font-size:30px; color:var(--deep); }
+    h3 { margin:0 0 12px; font-size:22px; color:var(--deep); }
+    h4 { margin:0 0 10px; font-size:18px; }
+    p { margin:0 0 14px; }
+    ul { margin:0; padding-left:22px; }
+    li { margin:0 0 8px; }
+    code { font-family:Consolas,"Courier New",monospace; background:#eef5ff; border:1px solid #d6e6ff; color:#164b86; padding:2px 6px; border-radius:8px; font-size:.95em; }
+    .section { margin-top:24px; padding:28px; }
+    .sub { margin-top:18px; padding:22px; background:var(--soft); }
+    .grid2,.grid3 { display:grid; gap:18px; }
+    .grid2 { grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .grid3 { grid-template-columns:repeat(3,minmax(0,1fr)); }
+    .card { padding:22px; }
+    .pills { display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; }
+    .pill { display:inline-flex; align-items:center; padding:8px 12px; border-radius:999px; border:1px solid #cfe2fb; background:#eef6ff; color:#1c5a97; font-size:14px; font-weight:600; }
+    .table { width:100%; border-collapse:collapse; background:#fff; border:1px solid var(--line); border-radius:18px; overflow:hidden; margin-top:10px; }
+    .table th,.table td { text-align:left; vertical-align:top; padding:12px 14px; border-bottom:1px solid #e4eefc; }
+    .table th { background:#f2f8ff; color:#1d4f87; font-size:14px; }
+    .table tr:last-child td { border-bottom:0; }
+    .tree,.note { border-radius:18px; padding:16px 18px; }
+    .tree { white-space:pre-wrap; font-family:Consolas,"Courier New",monospace; font-size:14px; background:#f5f9ff; border:1px solid #dceafe; color:#21486e; }
+    .note { background:#eefbf3; border:1px solid #ccefdc; color:#186c47; }
+    .footer { margin-top:24px; text-align:center; color:var(--muted); font-size:14px; }
+    @media (max-width:980px) { .grid2,.grid3 { grid-template-columns:1fr; } .page { width:min(100% - 24px,1460px); } h1 { font-size:34px; } h2 { font-size:26px; } }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <section class="hero">
+      <div class="eyebrow">ShiftTrack | Guia tecnica completa</div>
+      <h1>Frontend y backend explicados de punta a punta</h1>
+      <p>Documento actualizado con el estado actual de ShiftTrack: arquitectura, librerias, carpetas, archivos clave, componentes reutilizables, seguridad, Entra ID, SignalR, GSAP, holidays, coverage, PTO, Day Off, swaps, correos, tests y optimizaciones del build.</p>
+    </section>
+
+    <section class="section">
+      <h2>1. Vision general</h2>
+      <div class="grid2">
+        <div class="card">
+          <h3>Que es ShiftTrack</h3>
+          <p>ShiftTrack es una plataforma web para gestionar horarios operativos, coverage semanal, PTO, Day Off, change requests, administracion de empleados y revisiones por jerarquia.</p>
+          <div class="pills">
+            <span class="pill">Shift Calendar</span><span class="pill">Employees</span><span class="pill">Requests</span><span class="pill">PTO</span><span class="pill">Day Off</span><span class="pill">Swaps</span><span class="pill">Coverage</span><span class="pill">SSO Entra ID</span>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Arquitectura de alto nivel</h3>
+          <ul>
+            <li><strong>Frontend:</strong> React 19 + TypeScript + Vite.</li>
+            <li><strong>Backend:</strong> ASP.NET Core 8 + Dapper + SQL Server.</li>
+            <li><strong>Realtime:</strong> SignalR.</li>
+            <li><strong>Motion:</strong> GSAP y Motion.</li>
+            <li><strong>Auth:</strong> cookie HTTP + CSRF + Entra ID con PKCE.</li>
+            <li><strong>Datos:</strong> migraciones SQL aplicadas al iniciar la API.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="sub">
+        <h3>Estructura general del repositorio</h3>
+        <div class="tree">shifttrack/
+  shifttrack-web/      Frontend React + Vite
+  shifttrack-api/      API ASP.NET Core + Domain/Application/Infrastructure
+  deliverables/        HTML y artefactos compartibles
+  docs/agents/         Prompts y operating model interno
+  reports/             Scans y auditorias</div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>2. Frontend</h2>
+      <div class="grid2">
+        <div class="card">
+          <h3>Librerias del frontend</h3>
+          <table class="table">
+            <tr><th>Libreria</th><th>Uso</th></tr>
+            <tr><td><code>react</code>, <code>react-dom</code></td><td>Base de la SPA.</td></tr>
+            <tr><td><code>typescript</code></td><td>Tipado.</td></tr>
+            <tr><td><code>vite</code>, <code>@vitejs/plugin-react</code></td><td>Build y dev server.</td></tr>
+            <tr><td><code>react-router-dom</code></td><td>Rutas cliente.</td></tr>
+            <tr><td><code>@microsoft/signalr</code></td><td>Realtime del calendario.</td></tr>
+            <tr><td><code>gsap</code></td><td>Animaciones avanzadas.</td></tr>
+            <tr><td><code>motion</code></td><td>Motion declarativo.</td></tr>
+            <tr><td><code>phosphor-react</code></td><td>Iconos.</td></tr>
+            <tr><td><code>bcryptjs</code></td><td>Utilidades heredadas puntuales.</td></tr>
+            <tr><td><code>tailwindcss</code>, <code>@tailwindcss/vite</code></td><td>Disponibles, aunque la UI actual es mayormente CSS propio.</td></tr>
+          </table>
+        </div>
+        <div class="card">
+          <h3>Arquitectura frontend</h3>
+          <ul>
+            <li><code>src/App.tsx</code> controla bootstrap, sesion, loaders y lazy routes.</li>
+            <li><code>src/pages</code> concentra las vistas grandes.</li>
+            <li><code>src/components</code> contiene shells y piezas reutilizables.</li>
+            <li><code>src/components/ui</code> contiene primitivas como <code>Button</code>, <code>Field</code>, <code>Select</code>.</li>
+            <li><code>src/lib</code> concentra auth helpers, cliente API, constantes y browser state.</li>
+            <li><code>src/styles</code> organiza estilos por dominio visual.</li>
+          </ul>
+          <div class="note">El frontend ya usa <strong>lazy loading por ruta</strong> y <strong>vendor chunking</strong> para dejar el build sin warnings de Vite.</div>
+        </div>
+      </div>
+      <div class="sub">
+        <h3>Archivos y rutas principales del frontend</h3>
+        <table class="table">
+          <tr><th>Ruta</th><th>Responsabilidad</th></tr>
+          <tr><td><code>src/App.tsx</code></td><td>Root, rutas, session bootstrap, idle timeout y lazy imports.</td></tr>
+          <tr><td><code>src/pages/LoginPage.tsx</code></td><td>Login local y Entra ID.</td></tr>
+          <tr><td><code>src/pages/EntraCallbackPage.tsx</code></td><td>Callback SSO.</td></tr>
+          <tr><td><code>src/pages/DashboardPage.tsx</code></td><td>Shell autenticado con ambient background y modulos internos.</td></tr>
+          <tr><td><code>src/pages/ShiftCalendarPage.tsx</code></td><td>Calendario semanal y anual, PTO, Day Off, Change Request, holidays, coverage.</td></tr>
+          <tr><td><code>src/pages/RequestsPage.tsx</code></td><td>Tabs de PTO, Day Off y Swaps.</td></tr>
+          <tr><td><code>src/pages/PtoReviewPage.tsx</code></td><td>Revision de PTO y Day Off.</td></tr>
+          <tr><td><code>src/pages/SwapReviewPage.tsx</code></td><td>Revision de swaps.</td></tr>
+          <tr><td><code>src/components/ui/Button.tsx</code></td><td>Boton base reutilizable.</td></tr>
+          <tr><td><code>src/components/ui/Field.tsx</code></td><td>Wrapper reutilizable de campos.</td></tr>
+          <tr><td><code>src/components/ui/Select.tsx</code></td><td>Select custom compartido.</td></tr>
+          <tr><td><code>src/components/Modals.tsx</code></td><td>Shells modales con portal.</td></tr>
+          <tr><td><code>src/components/ShiftTrackLoader.tsx</code></td><td>Loader del logo.</td></tr>
+          <tr><td><code>src/components/DashboardAmbientBackground.tsx</code></td><td>Escena ambiental animada.</td></tr>
+          <tr><td><code>src/lib/api.ts</code></td><td>Cliente central de API y fallback local/cloud.</td></tr>
+          <tr><td><code>src/lib/browserState.ts</code></td><td>Estado efimero del browser para auth/PKCE.</td></tr>
+          <tr><td><code>src/styles/base.css</code></td><td>Estilos base globales.</td></tr>
+          <tr><td><code>src/styles/calendar.css</code></td><td>Calendario y vistas anual/semanal.</td></tr>
+        </table>
+        <p><strong>Rutas visibles:</strong> <code>/</code>, <code>/entra-callback</code>, <code>/maintenance</code>, <code>/force-change</code>, <code>/reset</code>, <code>/app/calendar</code>, <code>/app/employees</code>, <code>/app/requests</code>, <code>/pto-review</code>, <code>/swap-review</code>.</p>
+      </div>
+      <div class="sub">
+        <h3>Componentes reutilizables y UX base</h3>
+        <div class="grid3">
+          <div class="card"><h4>UI base</h4><ul><li><code>Button</code></li><li><code>Field</code></li><li><code>Select</code></li><li><code>ErrorPopup</code></li></ul></div>
+          <div class="card"><h4>Shells</h4><ul><li><code>Topbar</code></li><li><code>Modals</code></li><li><code>ShiftTrackLoader</code></li><li><code>DashboardAmbientBackground</code></li></ul></div>
+          <div class="card"><h4>Estado actual</h4><ul><li>Cursor nativo del sistema</li><li>Dropdowns custom</li><li>Modales por portal</li><li>Form stagger y loaders animados</li></ul></div>
+        </div>
+      </div>
+      <div class="sub">
+        <h3>Auth, Entra ID, GSAP y SignalR en frontend</h3>
+        <ul>
+          <li>La sesion principal se rehidrata via <code>/auth/me</code>.</li>
+          <li>No se persisten bearer tokens sensibles en <code>sessionStorage</code>.</li>
+          <li>Entra ID usa PKCE con <code>state</code>, <code>code_verifier</code> y <code>code_challenge</code>.</li>
+          <li>GSAP vive en <code>ShiftTrackLoader.tsx</code>, <code>Modals.tsx</code>, <code>DashboardAmbientBackground.tsx</code>, <code>ShiftCalendarPage.tsx</code>, <code>DashboardPage.tsx</code> y <code>MaintenancePage.tsx</code>.</li>
+          <li>SignalR vive en <code>src/lib/signalr.ts</code> y se usa principalmente desde calendario/dashboard.</li>
+          <li><code>vite.config.ts</code> separa chunks para React, Router, GSAP y SignalR.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>3. Backend</h2>
+      <div class="grid2">
+        <div class="card">
+          <h3>Capas del backend</h3>
+          <div class="tree">shifttrack-api/
+  ShiftTrack.Domain/          Entidades
+  ShiftTrack.Application/     Interfaces y contratos
+  ShiftTrack.Infrastructure/  Repositorios Dapper, correo, acceso externo
+  ShiftTrack.Api/             Endpoints, workflows, auth, hubs y migraciones
+  tests/                      Unit, Integration, Acceptance, Shared</div>
+        </div>
+        <div class="card">
+          <h3>Librerias del backend</h3>
+          <table class="table">
+            <tr><th>Libreria</th><th>Uso</th></tr>
+            <tr><td><code>Microsoft.AspNetCore.Authentication.JwtBearer</code></td><td>JWT y auth de API/SignalR.</td></tr>
+            <tr><td><code>Dapper</code></td><td>Acceso SQL ligero.</td></tr>
+            <tr><td><code>Microsoft.Data.SqlClient</code></td><td>Conexion a SQL Server.</td></tr>
+            <tr><td><code>BCrypt.Net-Next</code></td><td>Hashing de passwords.</td></tr>
+            <tr><td><code>ClosedXML</code></td><td>Exportes Excel.</td></tr>
+            <tr><td><code>Azure.Identity</code></td><td>Credenciales Azure.</td></tr>
+            <tr><td><code>Azure.Extensions.AspNetCore.Configuration.Secrets</code></td><td>Key Vault.</td></tr>
+            <tr><td><code>Azure.Communication.Email</code></td><td>Envio de correos.</td></tr>
+            <tr><td><code>Microsoft.Identity.Client</code></td><td>Soporte Microsoft/Entra.</td></tr>
+            <tr><td><code>Swashbuckle.AspNetCore</code></td><td>Swagger.</td></tr>
+          </table>
+        </div>
+      </div>
+      <div class="sub">
+        <h3>Archivos principales del backend</h3>
+        <table class="table">
+          <tr><th>Ruta</th><th>Responsabilidad</th></tr>
+          <tr><td><code>ShiftTrack.Api/Program.cs</code></td><td>Bootstrap de la API y configuracion.</td></tr>
+          <tr><td><code>ShiftTrack.Api/ServiceCollectionExtensions.cs</code></td><td>Registro de servicios, auth y SignalR.</td></tr>
+          <tr><td><code>ShiftTrack.Api/AuthEndpoints.cs</code></td><td>Login, logout, me, ping, reset, Entra login y Entra code login.</td></tr>
+          <tr><td><code>ShiftTrack.Api/ScheduleEndpoints.cs</code></td><td>Calendario, coverage preview, PTO, Day Off, swaps, export.</td></tr>
+          <tr><td><code>ShiftTrack.Api/ScheduleWorkflowService.cs</code></td><td>PTO, Day Off, vacations, holidays, coverage warnings y aprobaciones.</td></tr>
+          <tr><td><code>ShiftTrack.Api/ScheduleWorkflowService.Swap.cs</code></td><td>Change Request y swaps.</td></tr>
+          <tr><td><code>ShiftTrack.Api/CalendarHelpers.cs</code></td><td>Calendario, overrides y coverage summary.</td></tr>
+          <tr><td><code>ShiftTrack.Api/PtoHelpers.cs</code></td><td>Normalizacion de PTO y Day Off.</td></tr>
+          <tr><td><code>ShiftTrack.Api/AuthHelpers.cs</code></td><td>Exchange y validacion de tokens Entra.</td></tr>
+          <tr><td><code>ShiftTrack.Api/HolidayEndpoints.cs</code></td><td>Endpoint <code>/holidays</code>.</td></tr>
+          <tr><td><code>ShiftTrack.Infrastructure/Repositories/DapperUserRepository.cs</code></td><td>Persistencia de usuarios, requests, overrides y coverage snapshots.</td></tr>
+          <tr><td><code>ShiftTrack.Infrastructure/Services/AcsEmailService.cs</code></td><td>Envio de correos.</td></tr>
+          <tr><td><code>ShiftTrack.Infrastructure/Services/ShiftTrackEmailTemplates.cs</code></td><td>Templates HTML de correo.</td></tr>
+          <tr><td><code>ShiftTrack.Api/Database/Migrations/*.sql</code></td><td>Migraciones SQL y seed de holidays.</td></tr>
+        </table>
+      </div>
+      <div class="sub">
+        <h3>Seguridad, SignalR y SSO en backend</h3>
+        <ul>
+          <li>JWT y cookie auth soportados por ASP.NET Core 8.</li>
+          <li>CSRF token expuesto para requests sensibles.</li>
+          <li>SSO con Entra ID por Authorization Code + PKCE.</li>
+          <li>SignalR registrado en <code>ServiceCollectionExtensions.cs</code> y servido por <code>ScheduleHub.cs</code>.</li>
+          <li>La API comparte auth con SignalR para conexiones autenticadas.</li>
+          <li>Azure Key Vault y Azure Identity estan soportados por configuracion.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>4. Reglas de negocio actuales</h2>
+      <div class="grid2">
+        <div class="card">
+          <h3>Roles</h3>
+          <table class="table">
+            <tr><th>Rol</th><th>Comportamiento</th></tr>
+            <tr><td>Admin</td><td>Control total. Autoaprueba PTO y Day Off.</td></tr>
+            <tr><td>Manager</td><td>Gestion amplia. Sus PTO/Day Off requieren aprobacion de admin.</td></tr>
+            <tr><td>Team Leader</td><td>Como Employee, pero puede ver coverage.</td></tr>
+            <tr><td>Employee</td><td>Consulta su horario y solicita PTO / Day Off / swaps para si mismo.</td></tr>
+          </table>
+        </div>
+        <div class="card">
+          <h3>Modulos funcionales</h3>
+          <ul>
+            <li>Calendario semanal con coverage, holidays, PTO y Day Off.</li>
+            <li>Vista anual navegable por ano.</li>
+            <li>PTO, Day Off y Change Request desde el mismo modal.</li>
+            <li>Requests con tabs separadas para PTO, Day Off y Swaps.</li>
+            <li>Employees, export, review pages y realtime.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="sub">
+        <h3>PTO</h3>
+        <ul>
+          <li>Employees y Team Leaders no pueden pedir PTO en pasado ni a mas de 60 dias.</li>
+          <li>Vacation cuenta solo dias habiles: lunes a viernes no festivos.</li>
+          <li>Sabados, domingos y holidays dentro del rango de vacation se pintan, pero no descuentan dias.</li>
+        </ul>
+      </div>
+      <div class="sub">
+        <h3>Day Off Request</h3>
+        <ul>
+          <li>Aparece en el popup junto a PTO y Change Request.</li>
+          <li>Aparece en Requests como familia separada.</li>
+          <li>Admin puede montarselo a si mismo o a otros y queda autoaprobado.</li>
+          <li>Manager puede pedirlo para si o para otros, con aprobacion de admin.</li>
+          <li>Employee y Team Leader solo pueden pedirlo para si mismos, con aprobacion de managers o admins.</li>
+          <li>No se permite pedir Day Off en una fecha que ya es Day Off.</li>
+        </ul>
+      </div>
+      <div class="sub">
+        <h3>Coverage, holidays y correos</h3>
+        <ul>
+          <li>Coverage se calcula con thresholds distintos por dia de la semana.</li>
+          <li>Admin recibe warning antes de guardar o aprobar PTO / Day Off si se afecta coverage.</li>
+          <li>El warning actual muestra fecha, agentes activos proyectados, coverage proyectado y minimo requerido.</li>
+          <li>La app sirve holidays de Colombia por ano o por rango desde <code>/holidays</code>.</li>
+          <li>Si un agente trabaja en holiday, la letra del turno se pinta en rojo.</li>
+          <li>Los correos de PTO y Day Off incluyen comentarios; si no hay comentario, muestran <code>N/A</code>.</li>
+          <li>Jerarquia de correo: Employee / Team Leader notifican a Managers y Admins; Manager notifica a Admins; Admin se autoaprueba.</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>5. Flujo funcional completo</h2>
+      <ol>
+        <li>El usuario entra por login local o Entra ID.</li>
+        <li>La app rehidrata sesion con <code>/auth/me</code>.</li>
+        <li>El dashboard dirige a <code>/app/calendar</code>, <code>/app/employees</code> o <code>/app/requests</code>.</li>
+        <li>El calendario carga semana, holidays, coverage y filas de empleados.</li>
+        <li>Desde el calendario se puede crear PTO, Day Off o Change Request.</li>
+        <li>Si la accion requiere aprobacion, la API crea la request y dispara correo a reviewers segun jerarquia.</li>
+        <li>Reviewers aprueban o niegan desde Requests o review pages dedicadas.</li>
+        <li>Al aprobar o negar, se actualizan requests, schedule overrides, correos y realtime via SignalR.</li>
+      </ol>
+    </section>
+
+    <section class="section">
+      <h2>6. Testing, build y estado actual</h2>
+      <div class="grid3">
+        <div class="card"><h3>Testing</h3><p>Hay suites <strong>Unit</strong>, <strong>Integration</strong> y <strong>Acceptance</strong>, mas helpers compartidos en <code>tests/Shared</code>.</p></div>
+        <div class="card"><h3>Build</h3><p>El frontend ya usa lazy routes y manual chunks en Vite. El backend compila en .NET 8 y aplica migraciones SQL al iniciar.</p></div>
+        <div class="card"><h3>Estado actual</h3><p>ShiftTrack hoy integra calendario, coverage, holidays, PTO, Day Off, swaps, Employees, Requests, Entra ID, SignalR, GSAP y correos operativos.</p></div>
+      </div>
+      <div class="note">Documento actualizado con el estado de ShiftTrack al 27 de marzo de 2026, incluyendo Day Off Request, coverage warnings mejorados, comentarios en correos, holidays ampliados y optimizaciones del build.</div>
+    </section>
+
+    <div class="footer">ShiftTrack | Documento tecnico completo</div>
+  </div>
+</body>
+</html>

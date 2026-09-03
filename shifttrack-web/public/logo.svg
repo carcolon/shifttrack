@@ -1,0 +1,14 @@
+<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ShiftTrack">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#2ea7ff"/>
+      <stop offset="100%" stop-color="#1a3c78"/>
+    </linearGradient>
+  </defs>
+  <circle cx="60" cy="60" r="58" fill="url(#grad)"/>
+  <rect x="30" y="32" width="60" height="56" rx="8" ry="8" fill="#fff"/>
+  <rect x="26" y="40" width="68" height="8" rx="4" ry="4" fill="#1f7acb"/>
+  <circle cx="42" cy="32" r="6" fill="#1f7acb"/>
+  <circle cx="78" cy="32" r="6" fill="#1f7acb"/>
+  <path d="M44 46 L76 78 M76 46 L44 78" stroke="#1f7acb" stroke-width="10" stroke-linecap="round"/>
+</svg>

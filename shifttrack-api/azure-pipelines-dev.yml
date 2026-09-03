@@ -1,0 +1,257 @@
+trigger:
+  - dev
+
+pool:
+  vmImage: "windows-latest"
+
+variables:
+  - group: shifttrack-api-dev
+  - name: buildConfiguration
+    value: "Release"
+
+jobs:
+  - job: BuildAndPublish
+    displayName: "Build & Publish"
+    steps:
+      - task: UseDotNet@2
+        displayName: "Use .NET SDK 8.x"
+        inputs:
+          packageType: "sdk"
+          version: "8.x"
+          installationPath: "$(Agent.ToolsDirectory)/dotnet"
+
+      - task: DotNetCoreCLI@2
+        displayName: "Restore"
+        inputs:
+          command: "restore"
+          projects: "ShiftTrack.Api/ShiftTrack.Api.csproj"
+
+      - task: DotNetCoreCLI@2
+        displayName: "Build"
+        inputs:
+          command: "build"
+          projects: "ShiftTrack.Api/ShiftTrack.Api.csproj"
+          arguments: "--configuration $(buildConfiguration)"
+
+      - task: UsePythonVersion@0
+        displayName: "Use Python 3.x"
+        inputs:
+          versionSpec: "3.x"
+
+      - script: |
+          python -m pip install --upgrade pip
+          pip install semgrep
+        displayName: "Install Semgrep"
+
+      - script: |
+          dotnet list ShiftTrack.Api/ShiftTrack.Api.csproj package --vulnerable --include-transitive --format json > $(Build.ArtifactStagingDirectory)/dotnet-vulnerable-api.json
+        displayName: "Dependency scan (.NET vulnerable packages JSON)"
+
+      - script: |
+          semgrep --config p/owasp-top-ten ShiftTrack.Api ShiftTrack.Application ShiftTrack.Infrastructure --json --output $(Build.ArtifactStagingDirectory)/semgrep-api.json
+        displayName: "SAST scan (Semgrep OWASP)"
+
+      - task: PowerShell@2
+        displayName: "Security gate (api)"
+        inputs:
+          targetType: "inline"
+          pwsh: true
+          script: |
+            $semgrepPath = "$(Build.ArtifactStagingDirectory)/semgrep-api.json"
+            $dotnetPath = "$(Build.ArtifactStagingDirectory)/dotnet-vulnerable-api.json"
+
+            $sem = Get-Content $semgrepPath -Raw | ConvertFrom-Json
+            $semErrors = @($sem.results | Where-Object { $_.extra.severity -eq "ERROR" }).Count
+
+            $dotnetJson = Get-Content $dotnetPath -Raw
+            $highOrCritical = [regex]::Matches($dotnetJson, '"severity"\s*:\s*"(?i)(high|critical)"').Count
+
+            Write-Host "Semgrep ERROR findings: $semErrors"
+            Write-Host ".NET high/critical vulnerabilities: $highOrCritical"
+
+            if ($semErrors -gt 0 -or $highOrCritical -gt 0) {
+              throw "Security gate failed. Semgrep ERROR=$semErrors, dotnet high/critical=$highOrCritical"
+            }
+
+      - task: DotNetCoreCLI@2
+        displayName: "Publish"
+        inputs:
+          command: "publish"
+          publishWebProjects: false
+          projects: "ShiftTrack.Api/ShiftTrack.Api.csproj"
+          arguments: "--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)"
+          zipAfterPublish: true
+
+      - task: PowerShell@2
+        displayName: "Verify API package layout"
+        inputs:
+          targetType: "inline"
+          pwsh: true
+          script: |
+            $packages = @(Get-ChildItem -Path "$(Build.ArtifactStagingDirectory)" -Filter "*.zip" -File)
+            if ($packages.Count -ne 1) {
+              $packages | ForEach-Object { Write-Host "Found ZIP: $($_.FullName)" }
+              throw "Expected exactly one API ZIP package, found $($packages.Count)."
+            }
+
+            $package = $packages[0].FullName
+            Write-Host "Package: $package"
+            Add-Type -AssemblyName System.IO.Compression.FileSystem
+            $zip = [System.IO.Compression.ZipFile]::OpenRead($package)
+            try {
+              $entryNames = @($zip.Entries | Select-Object -ExpandProperty FullName)
+              foreach ($required in @("web.config", "ShiftTrack.Api.dll", "ShiftTrack.Api.runtimeconfig.json")) {
+                if ($entryNames -notcontains $required) {
+                  throw "Invalid API package layout: missing root entry '$required'."
+                }
+              }
+            }
+            finally {
+              $zip.Dispose()
+            }
+
+      - task: PublishPipelineArtifact@1
+        displayName: "Publish artifact"
+        inputs:
+          targetPath: "$(Build.ArtifactStagingDirectory)"
+          artifactName: "drop"
+
+  - job: Deploy
+    displayName: "Deploy to Azure Web App (dev)"
+    dependsOn: BuildAndPublish
+    steps:
+      - task: DownloadPipelineArtifact@2
+        displayName: "Download artifact"
+        inputs:
+          buildType: "current"
+          artifactName: "drop"
+          targetPath: "$(Pipeline.Workspace)/drop"
+
+      - task: UseDotNet@2
+        displayName: "Use .NET SDK 8.x"
+        inputs:
+          packageType: "sdk"
+          version: "8.x"
+          installationPath: "$(Agent.ToolsDirectory)/dotnet"
+
+      - task: PowerShell@2
+        displayName: "Apply EF database migrations (dev)"
+        inputs:
+          targetType: "inline"
+          pwsh: true
+          script: |
+            $connectionString = "$(ConnectionStrings__Default)"
+            if ([string]::IsNullOrWhiteSpace($connectionString) -or $connectionString -eq '$' + '(ConnectionStrings__Default)') {
+              throw "ConnectionStrings__Default is required in the shifttrack-api-dev variable group to apply EF database migrations."
+            }
+
+            $packages = @(Get-ChildItem -Path "$(Pipeline.Workspace)/drop" -Filter "*.zip" -Recurse -File)
+            if ($packages.Count -ne 1) {
+              $packages | ForEach-Object { Write-Host "Found ZIP: $($_.FullName)" }
+              throw "Expected exactly one API ZIP package before migrations, found $($packages.Count)."
+            }
+
+            $migrationRoot = Join-Path "$(Agent.TempDirectory)" "shifttrack-api-migrations"
+            if (Test-Path -LiteralPath $migrationRoot) {
+              Remove-Item -LiteralPath $migrationRoot -Recurse -Force
+            }
+            New-Item -ItemType Directory -Path $migrationRoot | Out-Null
+            Expand-Archive -Path $packages[0].FullName -DestinationPath $migrationRoot -Force
+
+            $env:ConnectionStrings__Default = $connectionString
+            dotnet (Join-Path $migrationRoot "ShiftTrack.Api.dll") --migrate-database
+
+      - task: AzureRmWebAppDeployment@4
+        displayName: "Deploy Web App"
+        inputs:
+          ConnectionType: "AzureRM"
+          azureSubscription: "$(azureServiceConnection)"
+          appType: "webApp"
+          WebAppName: "$(webAppName)"
+          package: "$(Pipeline.Workspace)/drop/**/*.zip"
+          DeploymentType: "zipDeploy"
+          AppSettings: >
+            -AzureAd__Audience $(AzureAd__Audience)
+            -AzureAd__ClientId $(AzureAd__ClientId)
+            -AzureAd__ClientSecret $(AzureAd__ClientSecret)
+            -AzureAd__TenantId $(AzureAd__TenantId)
+            -FrontendBaseUrl https://pruebashifttrack.solvoglobal.com
+            -AllowedOrigins__0 https://witty-ocean-0bbeada0f.1.azurestaticapps.net
+            -AllowedOrigins__1 https://pruebashifttrack.solvoglobal.com
+            -HiddenAdmins__Emails sara.puerta@solvoglobal.com,carlos.colon@solvoglobal.com
+            -Jwt__SigningKey $(Jwt__SigningKey)
+
+      - task: AzureCLI@2
+        displayName: "Finalize App Service deployment"
+        inputs:
+          azureSubscription: "$(azureServiceConnection)"
+          scriptType: "pscore"
+          scriptLocation: "inlineScript"
+          inlineScript: |
+            $resourceGroup = az webapp list --query "[?name=='$(webAppName)'].resourceGroup | [0]" -o tsv
+            if ([string]::IsNullOrWhiteSpace($resourceGroup)) {
+              throw "Could not resolve resource group for $(webAppName)."
+            }
+
+            az webapp config set `
+              --name "$(webAppName)" `
+              --resource-group $resourceGroup `
+              --web-sockets-enabled true
+
+            az webapp update `
+              --name "$(webAppName)" `
+              --resource-group $resourceGroup `
+              --client-affinity-enabled true
+
+            Write-Host "Target App Service:"
+            az webapp show `
+              --name "$(webAppName)" `
+              --resource-group $resourceGroup `
+              --query "{name:name, resourceGroup:resourceGroup, kind:kind, reserved:reserved, state:state, defaultHostName:defaultHostName, linuxFxVersion:siteConfig.linuxFxVersion, windowsFxVersion:siteConfig.windowsFxVersion}" `
+              -o json
+
+            $packages = @(Get-ChildItem -Path "$(Pipeline.Workspace)/drop" -Filter "*.zip" -Recurse -File)
+            if ($packages.Count -ne 1) {
+              $packages | ForEach-Object { Write-Host "Found ZIP: $($_.FullName)" }
+              throw "Expected exactly one API ZIP package before deploy, found $($packages.Count)."
+            }
+
+            $package = $packages[0].FullName
+            Write-Host "Deploying exact API package with Azure CLI: $package"
+            az webapp deploy `
+              --name "$(webAppName)" `
+              --resource-group $resourceGroup `
+              --src-path $package `
+              --type zip `
+              --restart true
+
+            $defaultHostName = az webapp show `
+              --name "$(webAppName)" `
+              --resource-group $resourceGroup `
+              --query defaultHostName `
+              -o tsv
+
+            $healthUrl = "https://$defaultHostName/auth/me"
+            Write-Host "Verifying deployed API route: $healthUrl"
+            $lastStatus = $null
+            for ($i = 1; $i -le 12; $i++) {
+              try {
+                Invoke-WebRequest -Uri $healthUrl -Method Get -UseBasicParsing -TimeoutSec 20 | Out-Null
+                $lastStatus = 200
+              }
+              catch {
+                $lastStatus = $_.Exception.Response.StatusCode.value__
+              }
+
+              if ($lastStatus -eq 401 -or $lastStatus -eq 403) {
+                Write-Host "API route exists; unauthenticated status was $lastStatus."
+                break
+              }
+
+              Write-Host "Attempt $i returned $lastStatus. Waiting for app startup..."
+              Start-Sleep -Seconds 10
+            }
+
+            if ($lastStatus -ne 401 -and $lastStatus -ne 403) {
+              throw "Post-deploy route check failed. Expected /auth/me to return 401 or 403, got $lastStatus."
+            }

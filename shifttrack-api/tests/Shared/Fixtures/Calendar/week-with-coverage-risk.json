@@ -1,0 +1,19 @@
+{
+  "weekStartDate": "2026-03-16",
+  "items": [
+    {
+      "date": "2026-03-16",
+      "expectedCoverage": 95.0,
+      "actualCoverage": 92.6,
+      "totalAgents": 25,
+      "riskLevel": "none"
+    },
+    {
+      "date": "2026-03-17",
+      "expectedCoverage": 85.0,
+      "actualCoverage": 63.0,
+      "totalAgents": 17,
+      "riskLevel": "high"
+    }
+  ]
+}

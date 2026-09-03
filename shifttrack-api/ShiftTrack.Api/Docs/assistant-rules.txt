@@ -1,0 +1,302 @@
+ShiftTrack Assistant Rules Inventory
+===================================
+
+Scope
+-----
+This file tracks the rules-based queries supported by Tracky in ShiftTrack.
+The assistant is deterministic: it normalizes the text, detects patterns,
+resolves dates and week context, and then queries the real schedule data.
+
+Normalization Rules
+-------------------
+- Not case-sensitive.
+- Not accent-sensitive.
+- `mañana` and `manana` are treated as the same token.
+- Tolerates extra punctuation in common questions.
+- Works in English and Spanish.
+- Employee lookup supports:
+  - first name
+  - first name + last name
+  - exact email
+
+Examples of equivalent inputs:
+- "DIAS LIBRES DE JHON DOE"
+- "dias libres de jhon doe"
+- "quien trabaja en el turno de la mañana"
+- "quien trabaja en el turno de la manana"
+- "Days Off of Jhon Doe"
+- "days off of jhon.doe@company.com"
+
+Week Context Rules
+------------------
+If the user does not specify a week, Tracky uses the week currently selected in Shift Calendar.
+
+Supported relative week phrases:
+- this week
+- current week
+- next week
+- last week
+- past week
+- from this week
+- for this week
+- from next week
+- for next week
+- from last week
+- for last week
+- esta semana
+- semana actual
+- la siguiente semana
+- siguiente semana
+- proxima semana
+- semana siguiente
+- la semana pasada
+- semana pasada
+- de esta semana
+- para esta semana
+- de la siguiente semana
+- para la siguiente semana
+- de la semana pasada
+- para la semana pasada
+
+Supported explicit week phrases:
+- week of 2026-03-16
+- week of March 16 2026
+- week of March 16, 2026
+- semana del 16 de marzo de 2026
+- semana de 16 de marzo de 2026
+
+Supported relative weekday phrases:
+- this monday
+- next monday
+- last monday
+- this friday
+- next friday
+- last friday
+- este lunes
+- esta semana lunes
+- proximo lunes
+- proxima semana lunes
+- lunes pasado
+- viernes pasado
+
+Exact Date Formats Supported
+----------------------------
+- 2026-03-17
+- 17/03/2026
+- 17-03-2026
+- March 17 2026
+- March 17 of 2026
+- March 17, 2026
+- April 15
+- 17 de marzo de 2026
+- 15 de abril
+- hoy
+- today
+- manana
+- mañana
+- tomorrow
+- ayer
+- yesterday
+
+Intent Families
+---------------
+1. Employee days off
+2. Employee schedule / working days
+3. Employee PTO
+4. Who is on PTO
+5. Who has days off
+6. Who works on a weekday, exact date, or shift
+7. Employee active / inactive status
+8. Who is active / inactive
+9. Who belongs to an operation, company, location, role, or shift
+
+Supported Query Families And Examples
+-------------------------------------
+Employee days off:
+- days off of Jhon
+- day off of Jhon Doe
+- free days of Jhon Doe
+- time off of Jhon Doe
+- is Jhon Doe not working next monday?
+- is Jhon Doe not scheduled on friday?
+- dias off de Jhon
+- dias libres de Jhon Doe
+- dias de descanso de Jhon Doe
+- days off of jhon.doe@company.com
+- days off of Jhon next week
+- dias libres de Jhon la semana pasada
+- days off of Jhon week of 2026-03-16
+- is Jhon Smith off on Friday?
+- is Jhon Doe off next monday?
+- when is Jhon Doe off?
+- cuando esta libre Jhon Doe?
+- does Jhon Doe have a day off on March 17 2026?
+- esta Jhon Doe libre mañana?
+
+Employee schedule / working days:
+- schedule of Jhon
+- schedule for Jhon Doe
+- working days of Jhon
+- horario de Jhon
+- dias laborales de Jhon Doe
+- schedule of jhon.doe@company.com
+- schedule of Jhon from last week
+- horario de Jhon para la siguiente semana
+- schedule of Jhon week of March 16 2026
+- does Jhon Doe work next monday?
+- does Jhon Doe work on March 17 2026?
+- what is Jhon Doe schedule on Tuesday?
+- when does Jhon Doe work?
+- cuando trabaja Jhon Doe?
+- que horario tiene Jhon Doe el martes?
+- who are in the morning shift?
+- who works in the late shift on March 17 2026?
+- quien trabaja en el turno de la mañana?
+- quien trabaja en el turno de la tarde el 17 de marzo de 2026?
+
+Employee PTO:
+- pto of Jhon
+- pto for Jhon Doe
+- vacations of Jhon
+- vacaciones de Jhon Doe
+- permisos de Jhon
+- pto of jhon.doe@company.com
+- pto of Jhon next week
+- vacaciones de Jhon la semana pasada
+- is Jhon Doe on PTO on March 11 2026?
+- when is Jhon Doe on PTO?
+- cuando tiene PTO Jhon Doe?
+
+Who is on PTO:
+- who is on pto
+- who was on pto
+- who has pto
+- who had pto last week
+- who is on pto next week
+- quien tiene pto
+- quien estuvo en pto la semana pasada
+- quien esta en pto esta semana
+- quien tiene pto semana del 16 de marzo de 2026
+- who has PTO on March 11 2026?
+- who is on PTO on friday?
+- quien tiene PTO el miercoles?
+
+Who has days off:
+- who has days off
+- who has free days
+- who has time off
+- who is not working on friday?
+- who is not scheduled on march 17 2026?
+- who is off
+- who has days off next week
+- who is off last week
+- quien tiene dias libres
+- quien tiene dias de descanso
+- quien esta libre esta semana
+- quien descansa la siguiente semana
+- quien no trabaja el viernes?
+- quien no esta programado el 17 de marzo de 2026?
+- quien tiene dias libres la siguiente semana
+- quien esta libre semana del 16 de marzo de 2026
+- who has days off on Friday?
+- who is off on March 17 2026?
+- quien tiene dias libres el viernes?
+
+Who works on a weekday:
+- who works monday
+- who works on monday
+- who worked on monday
+- who worked on monday from last week
+- who is working on friday next week
+- quien trabaja el lunes
+- quien trabajo el lunes de la semana pasada
+- quienes trabajan el viernes la siguiente semana
+- who works next monday?
+- who works last friday?
+- quien trabaja el proximo lunes?
+- quien trabaja el viernes pasado?
+
+Who works on an exact date:
+- who works on 2026-03-17
+- who works on 17/03/2026
+- who works on March 17 2026
+- who works on March 17 of 2026
+- who works on April 15
+- quien trabaja el 17 de marzo de 2026
+- quien trabaja el 15 de abril
+- who works tomorrow?
+- quien trabaja hoy?
+- quien trabaja manana?
+- quien trabaja mañana?
+
+Filter membership:
+- leaders
+- who are leaders?
+- who belongs to leaders?
+- who is in solvo global?
+- employees in col
+- members for managers
+- quien pertenece a leaders?
+- quien pertenece a solvo global?
+- empleados en col
+- miembros para administradores
+- who are in the morning shift?
+
+Employee status:
+- is Jhon active
+- is Jhon Doe inactive
+- active Jhon Doe
+- inactive Jhon
+- esta Jhon activo
+- esta Jhon Doe inactivo
+- is jhon.doe@company.com active
+
+Who is active / inactive:
+- who is active
+- who are active
+- who is inactive
+- quien esta activo
+- quienes estan activos
+- quien esta inactivo
+
+Matching Behavior
+-----------------
+- If a single-token name matches multiple employees, Tracky returns all matches.
+- If an exact email is provided, Tracky uses it as the primary identifier.
+- For day-specific questions, Tracky filters the answer to that exact day.
+- For week-wide questions, Tracky returns the matching facts across the selected or requested week.
+- It also supports natural filters for:
+  - operation / operacion: `leaders`, `outbound`, `referral`, `esq`, `sgf`
+  - company / empresa / compania: `solvo global`, `sgf`
+  - location / ubicacion / sede: `col`, `arg`, `wpb`
+  - role / rol / for / para: `manager`, `admin`, `employee`, `gerente`, `administrador`, `empleado`
+  - shift / turno: `morning`, `late`, `mañana`, `manana`, `tarde`
+
+Filter Examples
+---------------
+- who works in leaders next monday?
+- quien trabaja en leaders la siguiente semana?
+- who has days off for managers in col?
+- quien tiene dias libres en outbound?
+- who has PTO company solvo global this week?
+- quien trabaja en col rol manager?
+- who are in the morning shift?
+- who works in the late shift on March 17 2026?
+- quien trabaja en el turno de la mañana?
+- quien trabaja en el turno de la tarde el lunes?
+
+Current Limitations
+-------------------
+- Tracky is still rule-based, not a generative model.
+- It does not support arbitrary free-form conversation outside the rule sets above.
+- Ambiguous slash dates are interpreted as day/month/year.
+- Multi-intent prompts in one sentence may still fail if they mix unrelated requests.
+- It does not yet answer analytical questions such as totals, averages, trends, or comparisons.
+- It still depends on explicit rule patterns, even though the coverage is broad.
+
+Recommended User Guidance
+-------------------------
+- For week queries, prefer "this week", "next week", "last week", or "week of YYYY-MM-DD".
+- For exact dates, prefer ISO or full natural dates.
+- For employee-specific queries, use full name or email if there are duplicates.
+- For day-specific checks, include the weekday or exact date explicitly.

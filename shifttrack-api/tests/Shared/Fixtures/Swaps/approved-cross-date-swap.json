@@ -1,0 +1,23 @@
+{
+  "id": "55555555-5555-5555-5555-555555555555",
+  "requestedByUserId": "11111111-1111-1111-1111-111111111111",
+  "requestedByEmail": "carlos.colon@solvoglobal.com",
+  "requestedByDisplayName": "Carlos Colon",
+  "requestedByRole": 0,
+  "targetUserId": "66666666-6666-6666-6666-666666666666",
+  "targetUserEmail": "sara.puerta@solvoglobal.com",
+  "targetUserDisplayName": "Sara Puerta",
+  "targetUserRole": 0,
+  "swapDate": "2026-03-20T00:00:00Z",
+  "requestedDatesJson": "[\"2026-04-03\"]",
+  "targetDatesJson": "[\"2026-03-20\"]",
+  "pairingsJson": "[{\"requesterDate\":\"2026-04-03\",\"targetDate\":\"2026-03-20\",\"requesterBefore\":\"Day Off\",\"requesterAfter\":\"08:00 - 17:00\",\"targetBefore\":\"08:00 - 17:00\",\"targetAfter\":\"Day Off\"}]",
+  "requestType": "swap_shift",
+  "comments": "Need to swap days off",
+  "status": "approved",
+  "appliedGroupId": "77777777-7777-7777-7777-777777777777",
+  "reviewedByEmail": "sara.puerta@solvoglobal.com",
+  "reviewedByName": "Sara Puerta",
+  "reviewedByRole": 0,
+  "reviewedAtUtc": "2026-03-18T14:00:00Z"
+}
